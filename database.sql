@@ -1,98 +1,230 @@
-CREATE shopapp;
-USE shopapp;
-CREATE TABLE users(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    fullname VARCHAR(100) DEFAULT '',
-    phone_number VARCHAR(10) NOT NULL,
-    address VARCHAR(200) DEFAULT '',
-    password VARCHAR(50) NOT NULL DEFAULT '',
-    created_at DATETIME,
-    updated_at DATETIME,
-    is_active TINYINT(1) DEFAULT 1,
-    date_of_birth DATE,
-    facebook_account_id INT DEFAULT 0,
-    google_account_id INT DEFAULT 0
+-- ==========================================
+-- 1. TẠO CÁC BẢNG (TABLES)
+-- ==========================================
+
+CREATE TABLE users (
+                       id INT AUTO_INCREMENT PRIMARY KEY,
+                       email VARCHAR(255),
+                       phone VARCHAR(20),
+                       password VARCHAR(255),
+                       name VARCHAR(255),
+                       dob DATE,
+                       avatar VARCHAR(255),
+                       status VARCHAR(50),
+                       created_at DATETIME,
+                       updated_at DATETIME
 );
 
-ALTER TABLE users ADD COLUMN role_id INT;
-
-CREATE TABLE roles(
-    id INT PRIMARY KEY,
-    name VARCHAR(20) NOT NULL UNIQUE
+CREATE TABLE roles (
+                       id INT AUTO_INCREMENT PRIMARY KEY,
+                       name VARCHAR(50)
 );
 
-ALTER TABLE users ADD FOREIGN KEY (role_id) REFERENCES roles(id);
-
-CREATE TABLE tokens(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    token VARCHAR(255) UNIQUE NOT NULL,
-    token_type VARCHAR(50) NOT NULL,
-    expiration_date DATETIME,
-    revoked TINYINT(1) NOT NULL,
-    expired TINYINT(1) NOT NULL,
-    user_id INT,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+CREATE TABLE user_roles (
+                            user_id INT,
+                            role_id INT,
+                            PRIMARY KEY (user_id, role_id)
 );
 
-CREATE TABLE social_accounts(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    provider VARCHAR(20) NOT NULL COMMENT 'Tên nhà cung cấp dịch vụ xã hội như Facebook, Google',
-    provider_id VARCHAR(50) NOT NULL COMMENT 'ID tài khoản xã hội từ nhà cung cấp',
-    email VARCHAR(150) NOT NULL COMMENT 'Email liên kết với tài khoản xã hội',
-    name VARCHAR(100) NOT NULL COMMENT 'Tên đầy đủ của người dùng từ tài khoản xã hội',
-    user_id INT,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+CREATE TABLE social_accounts (
+                                 id INT AUTO_INCREMENT PRIMARY KEY,
+                                 user_id INT,
+                                 provider_id VARCHAR(255),
+                                 provider_name VARCHAR(50),
+                                 email VARCHAR(255),
+                                 created_at DATETIME,
+                                 updated_at DATETIME
 );
 
-CREATE TABLE categories(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL DEFAULT '' COMMENT 'Tên danh mục sản phẩm'
+CREATE TABLE categories (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            name VARCHAR(255),
+                            created_at DATETIME,
+                            updated_at DATETIME
 );
 
-CREATE TABLE products(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(350) COMMENT 'Tên sản phẩm',
-    price FLOAT NOT NULL CHECK(price >= 0) COMMENT 'Giá sản phẩm',
-    thumbnail VARCHAR(300) DEFAULT '' COMMENT 'Ảnh đại diện sản phẩm',
-    description LONGTEXT COMMENT 'Mô tả sản phẩm',
-    created_at DATETIME,
-    updated_at DATETIME,
-    category_id INT,
-    FOREIGN KEY (category_id) REFERENCES categories(id)
+CREATE TABLE products (
+                          id INT AUTO_INCREMENT PRIMARY KEY,
+                          name VARCHAR(255),
+                          description TEXT,
+                          thumbnail VARCHAR(255),
+                          sold_quantity INT,
+                          rating DECIMAL(2,1),
+                          rating_count INT,
+                          min_price DECIMAL(12,2),
+                          max_price DECIMAL(12,2),
+                          is_hot BOOLEAN,
+                          total_stock INT,
+                          category_id INT,
+                          status VARCHAR(50),
+                          created_at DATETIME,
+                          updated_at DATETIME
 );
 
-CREATE TABLE orders(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT,
-    fullname VARCHAR(100) DEFAULT '',
-    email VARCHAR(100) DEFAULT '',
-    phone_number VARCHAR(20) NOT NULL,
-    address VARCHAR(200) NOT NULL,
-    note VARCHAR(100) DEFAULT '',
-    order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(20),
-    total_money FLOAT CHECK(total_money >= 0),
-    FOREIGN KEY (user_id) REFERENCES users(id)
+CREATE TABLE product_variants (
+                                  id INT AUTO_INCREMENT PRIMARY KEY,
+                                  product_id INT,
+                                  sku VARCHAR(100) UNIQUE,
+                                  price_cost DECIMAL(12,2),
+                                  price DECIMAL(12,2),
+                                  stock INT,
+                                  image VARCHAR(255),
+                                  created_at DATETIME,
+                                  updated_at DATETIME
 );
 
-ALTER TABLE orders ADD COLUMN shipping_method VARCHAR(100);
-ALTER TABLE orders ADD COLUMN shipping_address VARCHAR(200);
-ALTER TABLE orders ADD COLUMN shipping_date DATE;
-ALTER TABLE orders ADD COLUMN tracking_number VARCHAR(100);
-ALTER TABLE orders ADD COLUMN payment_method VARCHAR(100);
-ALTER TABLE orders ADD COLUMN active TINYINT(1);
-ALTER TABLE orders 
-MODIFY COLUMN status ENUM('PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED') DEFAULT 'PENDING'
-COMMENT 'Trạng thái đơn hàng';
-
-
-CREATE TABLE order_details(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    order_id INT,
-    product_id INT,
-    number_of_products INT CHECK(number_of_products > 0),
-    price FLOAT CHECK(price >= 0),
-    color VARCHAR(20) DEFAULT '',
-    FOREIGN KEY (order_id) REFERENCES orders(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
+CREATE TABLE attributes (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            name VARCHAR(100),
+                            created_at DATETIME,
+                            updated_at DATETIME
 );
+
+CREATE TABLE attribute_values (
+                                  id INT AUTO_INCREMENT PRIMARY KEY,
+                                  attribute_id INT,
+                                  value VARCHAR(100),
+                                  created_at DATETIME,
+                                  updated_at DATETIME
+);
+
+CREATE TABLE variant_attribute_values (
+                                          variant_id INT,
+                                          attribute_value_id INT,
+                                          created_at DATETIME,
+                                          updated_at DATETIME,
+                                          PRIMARY KEY (variant_id, attribute_value_id)
+);
+
+CREATE TABLE feedbacks (
+                           id INT AUTO_INCREMENT PRIMARY KEY,
+                           product_id INT,
+                           user_id INT,
+                           star INT,
+                           content TEXT,
+                           created_at DATETIME,
+                           updated_at DATETIME
+);
+
+CREATE TABLE product_images (
+                                id INT AUTO_INCREMENT PRIMARY KEY,
+                                product_id INT,
+                                image_url VARCHAR(255),
+                                created_at DATETIME,
+                                updated_at DATETIME
+);
+
+CREATE TABLE coupons (
+                         id INT AUTO_INCREMENT PRIMARY KEY,
+                         code VARCHAR(50) UNIQUE,
+                         discount_type VARCHAR(50),
+                         discount_value DECIMAL(12,2),
+                         min_order_value INT,
+                         max_discount INT,
+                         usage_limit INT,
+                         used_count INT,
+                         start_date DATETIME,
+                         end_date DATETIME,
+                         status VARCHAR(50),
+                         created_at DATETIME,
+                         updated_at DATETIME
+);
+
+CREATE TABLE orders (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        user_id INT,
+                        coupon_id INT,
+                        note VARCHAR(255),
+                        total DECIMAL(12,2),
+                        status VARCHAR(50),
+                        created_at DATETIME,
+                        updated_at DATETIME
+);
+
+CREATE TABLE payments (
+                          id INT AUTO_INCREMENT PRIMARY KEY,
+                          order_id INT UNIQUE, -- One-to-One
+                          transaction_id VARCHAR(255),
+                          payment_method VARCHAR(50),
+                          payment_status VARCHAR(50),
+                          created_at DATETIME,
+                          updated_at DATETIME
+);
+
+CREATE TABLE shipping_details (
+                                  id INT AUTO_INCREMENT PRIMARY KEY,
+                                  order_id INT UNIQUE, -- One-to-One
+                                  name VARCHAR(255),
+                                  phone VARCHAR(20),
+                                  email VARCHAR(255),
+                                  shipping_address VARCHAR(255),
+                                  shipping_method VARCHAR(50),
+                                  carrier VARCHAR(100),
+                                  shipping_fee DECIMAL(12,2),
+                                  created_at DATETIME,
+                                  updated_at DATETIME
+);
+
+CREATE TABLE order_details (
+                               id INT AUTO_INCREMENT PRIMARY KEY,
+                               order_id INT,
+                               variant_id INT,
+                               price DECIMAL(12,2),
+                               quantity INT,
+                               created_at DATETIME,
+                               updated_at DATETIME
+);
+
+CREATE TABLE carts (
+                       id INT AUTO_INCREMENT PRIMARY KEY,
+                       user_id INT UNIQUE, -- One-to-One
+                       created_at DATETIME,
+                       updated_at DATETIME
+);
+
+CREATE TABLE cart_items (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            cart_id INT,
+                            variant_id INT,
+                            quantity INT,
+                            created_at DATETIME,
+                            updated_at DATETIME
+);
+
+
+-- ==========================================
+-- 2. THIẾT LẬP KHÓA NGOẠI (FOREIGN KEYS)
+-- ==========================================
+
+-- Quyền & Tài khoản
+ALTER TABLE user_roles ADD CONSTRAINT fk_ur_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE user_roles ADD CONSTRAINT fk_ur_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE social_accounts ADD CONSTRAINT fk_sa_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+
+-- Sản phẩm & Biến thể
+ALTER TABLE products ADD CONSTRAINT fk_prod_cat FOREIGN KEY (category_id) REFERENCES categories(id);
+ALTER TABLE product_images ADD CONSTRAINT fk_pi_prod FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE;
+ALTER TABLE product_variants ADD CONSTRAINT fk_pv_prod FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE;
+ALTER TABLE attribute_values ADD CONSTRAINT fk_av_attr FOREIGN KEY (attribute_id) REFERENCES attributes(id) ON DELETE CASCADE;
+
+-- Many-to-Many: Variant - Attribute Value
+ALTER TABLE variant_attribute_values ADD CONSTRAINT fk_vav_variant FOREIGN KEY (variant_id) REFERENCES product_variants(id) ON DELETE CASCADE;
+ALTER TABLE variant_attribute_values ADD CONSTRAINT fk_vav_attrval FOREIGN KEY (attribute_value_id) REFERENCES attribute_values(id) ON DELETE CASCADE;
+
+-- Đánh giá
+ALTER TABLE feedbacks ADD CONSTRAINT fk_fb_user FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE feedbacks ADD CONSTRAINT fk_fb_prod FOREIGN KEY (product_id) REFERENCES products(id);
+
+-- Giỏ hàng
+ALTER TABLE carts ADD CONSTRAINT fk_cart_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE cart_items ADD CONSTRAINT fk_ci_cart FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE;
+ALTER TABLE cart_items ADD CONSTRAINT fk_ci_variant FOREIGN KEY (variant_id) REFERENCES product_variants(id);
+
+-- Đơn hàng & Thanh toán & Vận chuyển
+ALTER TABLE orders ADD CONSTRAINT fk_order_user FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE orders ADD CONSTRAINT fk_order_coupon FOREIGN KEY (coupon_id) REFERENCES coupons(id);
+ALTER TABLE order_details ADD CONSTRAINT fk_od_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
+ALTER TABLE order_details ADD CONSTRAINT fk_od_variant FOREIGN KEY (variant_id) REFERENCES product_variants(id);
+
+ALTER TABLE payments ADD CONSTRAINT fk_pay_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
+ALTER TABLE shipping_details ADD CONSTRAINT fk_sd_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
