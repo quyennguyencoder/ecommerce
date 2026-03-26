@@ -16,17 +16,14 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class Role {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @NotBlank(message = "Tên role không được để trống")
-    @Size(max = 50, message = "Tên role không được vượt quá 50 ký tự")
-    @Column(name = "name", length = 50, nullable = false, unique = true)
     private String name;
 
-    @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
-    @Builder.Default
-    private Set<User> users = new HashSet<>();
+    public static String ADMIN = "ADMIN";
+    public static String USER = "USER";
+    public static String STAFF = "STAFF";
+
+
 }
