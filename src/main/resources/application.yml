@@ -16,16 +16,26 @@ spring:
       hibernate:
       dialect: org.hibernate.dialect.MySQL8Dialect
       format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  flyway:
+    locations: classpath:/db/migration,classpath:/dev/db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
 
+uploads:
+  products: /uploads/products/
+  avatars: /uploads/avatars/
 jwt:
-  expiration: 2592000 #30 days = 30 * 24 * 60 * 60
+  expiration-access-token: 2592000 #30 days = 30 * 24 * 60 * 60
   expiration-refresh-token: 5184000 #60 days = 60 * 24 * 60 * 60
-  secretKey: TaqlmGv1iEDMRiFp/pHuID1+T84IABfuA0xXh4GhiUI=
-
+  secret-key: +H0WZ2cfLZ/6E8OIG/OI9JB9j2ZUpMKVSeWEc0dRCRsT+NqVdBZbWyrMLzsgg1LjPdcb62eiRZYm0AC5j59Ie5PLCYjwIFqBwzuCPRVvnXI=
 
 
 

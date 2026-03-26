@@ -1,3 +1,8 @@
+
+DROP DATABASE IF EXISTS ecommerce;
+CREATE DATABASE IF NOT EXISTS ecommerce;
+USE ecommerce;
+
 -- ==========================================
 -- 1. TẠO CÁC BẢNG (TABLES)
 -- ==========================================
@@ -9,8 +14,11 @@ CREATE TABLE users (
                        password VARCHAR(255),
                        name VARCHAR(255),
                        dob DATE,
+                       address VARCHAR(400),
                        avatar VARCHAR(255),
-                       status VARCHAR(50),
+                       gender VARCHAR(10),
+                       role_id INT,
+                       is_active BOOLEAN DEFAULT TRUE,
                        created_at DATETIME,
                        updated_at DATETIME
 );
@@ -18,12 +26,6 @@ CREATE TABLE users (
 CREATE TABLE roles (
                        id INT AUTO_INCREMENT PRIMARY KEY,
                        name VARCHAR(50)
-);
-
-CREATE TABLE user_roles (
-                            user_id INT,
-                            role_id INT,
-                            PRIMARY KEY (user_id, role_id)
 );
 
 CREATE TABLE social_accounts (
@@ -157,10 +159,10 @@ CREATE TABLE shipping_details (
                                   name VARCHAR(255),
                                   phone VARCHAR(20),
                                   email VARCHAR(255),
+                                  gender VARCHAR(10),
                                   shipping_address VARCHAR(255),
                                   shipping_method VARCHAR(50),
                                   carrier VARCHAR(100),
-                                  shipping_fee DECIMAL(12,2),
                                   created_at DATETIME,
                                   updated_at DATETIME
 );
@@ -195,36 +197,130 @@ CREATE TABLE cart_items (
 -- ==========================================
 -- 2. THIẾT LẬP KHÓA NGOẠI (FOREIGN KEYS)
 -- ==========================================
+-- USERS -> ROLES
+ALTER TABLE users
+    ADD CONSTRAINT fk_users_roles
+        FOREIGN KEY (role_id) REFERENCES roles(id)
+            ON DELETE SET NULL
+            ON UPDATE CASCADE;
 
--- Quyền & Tài khoản
-ALTER TABLE user_roles ADD CONSTRAINT fk_ur_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
-ALTER TABLE user_roles ADD CONSTRAINT fk_ur_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE;
-ALTER TABLE social_accounts ADD CONSTRAINT fk_sa_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+-- SOCIAL ACCOUNTS -> USERS
+ALTER TABLE social_accounts
+    ADD CONSTRAINT fk_social_accounts_users
+        FOREIGN KEY (user_id) REFERENCES users(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
 
--- Sản phẩm & Biến thể
-ALTER TABLE products ADD CONSTRAINT fk_prod_cat FOREIGN KEY (category_id) REFERENCES categories(id);
-ALTER TABLE product_images ADD CONSTRAINT fk_pi_prod FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE;
-ALTER TABLE product_variants ADD CONSTRAINT fk_pv_prod FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE;
-ALTER TABLE attribute_values ADD CONSTRAINT fk_av_attr FOREIGN KEY (attribute_id) REFERENCES attributes(id) ON DELETE CASCADE;
+-- PRODUCTS -> CATEGORIES
+ALTER TABLE products
+    ADD CONSTRAINT fk_products_categories
+        FOREIGN KEY (category_id) REFERENCES categories(id)
+            ON DELETE SET NULL
+            ON UPDATE CASCADE;
 
--- Many-to-Many: Variant - Attribute Value
-ALTER TABLE variant_attribute_values ADD CONSTRAINT fk_vav_variant FOREIGN KEY (variant_id) REFERENCES product_variants(id) ON DELETE CASCADE;
-ALTER TABLE variant_attribute_values ADD CONSTRAINT fk_vav_attrval FOREIGN KEY (attribute_value_id) REFERENCES attribute_values(id) ON DELETE CASCADE;
+-- PRODUCT_VARIANTS -> PRODUCTS
+ALTER TABLE product_variants
+    ADD CONSTRAINT fk_variants_products
+        FOREIGN KEY (product_id) REFERENCES products(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
 
--- Đánh giá
-ALTER TABLE feedbacks ADD CONSTRAINT fk_fb_user FOREIGN KEY (user_id) REFERENCES users(id);
-ALTER TABLE feedbacks ADD CONSTRAINT fk_fb_prod FOREIGN KEY (product_id) REFERENCES products(id);
+-- ATTRIBUTE_VALUES -> ATTRIBUTES
+ALTER TABLE attribute_values
+    ADD CONSTRAINT fk_attribute_values_attributes
+        FOREIGN KEY (attribute_id) REFERENCES attributes(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
 
--- Giỏ hàng
-ALTER TABLE carts ADD CONSTRAINT fk_cart_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
-ALTER TABLE cart_items ADD CONSTRAINT fk_ci_cart FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE;
-ALTER TABLE cart_items ADD CONSTRAINT fk_ci_variant FOREIGN KEY (variant_id) REFERENCES product_variants(id);
+-- VARIANT_ATTRIBUTE_VALUES (N-N)
+ALTER TABLE variant_attribute_values
+    ADD CONSTRAINT fk_vav_variant
+        FOREIGN KEY (variant_id) REFERENCES product_variants(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
 
--- Đơn hàng & Thanh toán & Vận chuyển
-ALTER TABLE orders ADD CONSTRAINT fk_order_user FOREIGN KEY (user_id) REFERENCES users(id);
-ALTER TABLE orders ADD CONSTRAINT fk_order_coupon FOREIGN KEY (coupon_id) REFERENCES coupons(id);
-ALTER TABLE order_details ADD CONSTRAINT fk_od_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
-ALTER TABLE order_details ADD CONSTRAINT fk_od_variant FOREIGN KEY (variant_id) REFERENCES product_variants(id);
+ALTER TABLE variant_attribute_values
+    ADD CONSTRAINT fk_vav_attribute_value
+        FOREIGN KEY (attribute_value_id) REFERENCES attribute_values(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
 
-ALTER TABLE payments ADD CONSTRAINT fk_pay_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
-ALTER TABLE shipping_details ADD CONSTRAINT fk_sd_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
+-- FEEDBACKS
+ALTER TABLE feedbacks
+    ADD CONSTRAINT fk_feedbacks_products
+        FOREIGN KEY (product_id) REFERENCES products(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+
+ALTER TABLE feedbacks
+    ADD CONSTRAINT fk_feedbacks_users
+        FOREIGN KEY (user_id) REFERENCES users(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+
+-- PRODUCT IMAGES
+ALTER TABLE product_images
+    ADD CONSTRAINT fk_product_images_products
+        FOREIGN KEY (product_id) REFERENCES products(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+
+-- ORDERS
+ALTER TABLE orders
+    ADD CONSTRAINT fk_orders_users
+        FOREIGN KEY (user_id) REFERENCES users(id)
+            ON DELETE SET NULL
+            ON UPDATE CASCADE;
+
+ALTER TABLE orders
+    ADD CONSTRAINT fk_orders_coupons
+        FOREIGN KEY (coupon_id) REFERENCES coupons(id)
+            ON DELETE SET NULL
+            ON UPDATE CASCADE;
+
+-- PAYMENTS (1-1)
+ALTER TABLE payments
+    ADD CONSTRAINT fk_payments_orders
+        FOREIGN KEY (order_id) REFERENCES orders(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+
+-- SHIPPING DETAILS (1-1)
+ALTER TABLE shipping_details
+    ADD CONSTRAINT fk_shipping_orders
+        FOREIGN KEY (order_id) REFERENCES orders(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+
+-- ORDER DETAILS
+ALTER TABLE order_details
+    ADD CONSTRAINT fk_order_details_orders
+        FOREIGN KEY (order_id) REFERENCES orders(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+
+ALTER TABLE order_details
+    ADD CONSTRAINT fk_order_details_variants
+        FOREIGN KEY (variant_id) REFERENCES product_variants(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+
+-- CARTS (1-1 USERS)
+ALTER TABLE carts
+    ADD CONSTRAINT fk_carts_users
+        FOREIGN KEY (user_id) REFERENCES users(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+
+-- CART ITEMS
+ALTER TABLE cart_items
+    ADD CONSTRAINT fk_cart_items_carts
+        FOREIGN KEY (cart_id) REFERENCES carts(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+
+ALTER TABLE cart_items
+    ADD CONSTRAINT fk_cart_items_variants
+        FOREIGN KEY (variant_id) REFERENCES product_variants(id)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;

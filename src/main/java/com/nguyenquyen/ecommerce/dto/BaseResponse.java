@@ -1,6 +1,5 @@
-package com.nguyenquyen.ecommerce.dtos.response;
+package com.nguyenquyen.ecommerce.dto;
 
-import jakarta.persistence.MappedSuperclass;
 import lombok.*;
 import java.time.LocalDateTime;
 
