@@ -2,6 +2,7 @@ package com.nguyenquyen.ecommerce.service.impl;
 
 import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByEmailRequest;
 import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByPhoneRequest;
+import com.nguyenquyen.ecommerce.dto.request.user.ChangePasswordRequest;
 import com.nguyenquyen.ecommerce.dto.request.user.UserUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.UserResponse;
 import com.nguyenquyen.ecommerce.mapper.RoleMapper;
@@ -124,14 +125,6 @@ public class UserService implements IUserService {
             existingUser.setDob(request.getDob());
         }
 
-        if (request.getAvatar() != null) {
-            existingUser.setAvatar(request.getAvatar());
-        }
-
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            existingUser.setPassword(passwordEncoder.encode(request.getPassword()));
-        }
-
         User updatedUser = userRepository.save(existingUser);
         return userMapper.userToUserResponse(updatedUser);
     }
@@ -171,6 +164,35 @@ public class UserService implements IUserService {
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
         existingUser.setIsActive(true);
+        userRepository.save(existingUser);
+    }
+
+    @Override
+    public void updateUserAvatar(Long id, String avatarFileName) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+
+        existingUser.setAvatar(avatarFileName);
+        userRepository.save(existingUser);
+    }
+
+    @Override
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        // Verify old password
+        if (!passwordEncoder.matches(request.getOldPassword(), existingUser.getPassword())) {
+            throw new RuntimeException("Mật khẩu cũ không chính xác");
+        }
+
+        // Verify new password and confirm password match
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new RuntimeException("Mật khẩu mới và xác nhận mật khẩu không khớp");
+        }
+
+        // Update password
+        existingUser.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(existingUser);
     }
 }

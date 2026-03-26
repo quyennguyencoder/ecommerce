@@ -32,10 +32,4 @@ public class UserUpdateRequest {
 
     @Past(message = "Ngày sinh phải là ngày trong quá khứ")
     private LocalDate dob;
-
-    @Size(max = 255, message = "Avatar không được vượt quá 255 ký tự")
-    private String avatar;
-
-    @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
-    private String password;
 }
