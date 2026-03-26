@@ -3,17 +3,25 @@ package com.nguyenquyen.ecommerce.controller;
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
 import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByEmailRequest;
 import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByPhoneRequest;
+import com.nguyenquyen.ecommerce.dto.request.user.ChangePasswordRequest;
 import com.nguyenquyen.ecommerce.dto.request.user.UserUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.UserResponse;
+import com.nguyenquyen.ecommerce.service.IFileService;
 import com.nguyenquyen.ecommerce.service.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -22,6 +30,10 @@ import java.util.List;
 public class UserController {
 
     private final IUserService userService;
+    private final IFileService fileService;
+
+    @Value("${uploads.avatars}")
+    private String avatarUploadPath;
 
     @PostMapping("/register/email")
     public ResponseEntity<ApiResponse<UserResponse>> registerByEmail(
@@ -128,6 +140,63 @@ public class UserController {
                 .message("Kích hoạt user thành công")
                 .build();
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/avatar/upload")
+    public ResponseEntity<ApiResponse<String>> uploadAvatar(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+        String fileName = fileService.uploadAvatar(file);
+        userService.updateUserAvatar(id, fileName);
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .status(HttpStatus.OK)
+                .message("Upload avatar thành công")
+                .data(fileName)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/avatar")
+    public ResponseEntity<Resource> getAvatar(@PathVariable Long id) {
+        try {
+            UserResponse user = userService.getUserById(id);
+            Resource resource = fileService.loadAvatarFile(user.getAvatar());
+            String mediaType = detectMediaType(user.getAvatar());
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(mediaType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + (user.getAvatar() != null ? user.getAvatar() : "default-avatar.png") + "\"")
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PutMapping("/{id}/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @PathVariable Long id,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(id, request);
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .status(HttpStatus.OK)
+                .message("Đổi mật khẩu thành công")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    private String detectMediaType(String avatarFileName) {
+        try {
+            if (avatarFileName != null && !avatarFileName.isEmpty()) {
+                String mediaType = Files.probeContentType(Paths.get(avatarUploadPath, avatarFileName));
+                if (mediaType != null) {
+                    return mediaType;
+                }
+            }
+        } catch (Exception e) {
+            // Ignore exception, use default
+        }
+        // return MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        return "image/png"; // mặc định trả về PNG vì avatar mặc định là PNG
     }
 
 }
