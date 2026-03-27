@@ -7,4 +7,5 @@ public interface IFileService {
     String uploadAvatar(MultipartFile file);
     String uploadProductImage(MultipartFile file);
     Resource loadAvatarFile(String avatarFileName);
+    Resource loadProductImage(String productImageFileName);
 }

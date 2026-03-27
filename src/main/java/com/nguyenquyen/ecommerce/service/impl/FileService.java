@@ -54,6 +54,27 @@ public class FileService implements IFileService {
         }
     }
 
+    @Override
+    public Resource loadProductImage(String productImageFileName) {
+        try {
+            // Check if product image file name is null or empty
+            if (productImageFileName == null || productImageFileName.isEmpty()) {
+                return loadDefaultProductImage();
+            }
+
+            // Try to load product image file
+            Path productImagePath = Paths.get(productUploadPath, productImageFileName);
+            if (Files.exists(productImagePath)) {
+                return new FileSystemResource(productImagePath);
+            }
+
+            // File not found, return default product image
+            return loadDefaultProductImage();
+        } catch (Exception e) {
+            return loadDefaultProductImage();
+        }
+    }
+
 
     private Resource loadDefaultAvatar() {
         try {
@@ -68,6 +89,22 @@ public class FileService implements IFileService {
             return new org.springframework.core.io.ClassPathResource("static/images/default-avatar.png");
         } catch (Exception e) {
             throw new RuntimeException("Default avatar not found: " + e.getMessage(), e);
+        }
+    }
+
+    private Resource loadDefaultProductImage() {
+        try {
+            // Try to load default product image from classpath or upload directory
+            Path defaultProductImagePath = Paths.get(productUploadPath, "default-product.png");
+
+            if (Files.exists(defaultProductImagePath)) {
+                return new FileSystemResource(defaultProductImagePath);
+            }
+
+            // If no default product image file exists, try from classpath
+            return new org.springframework.core.io.ClassPathResource("static/images/default-product.png");
+        } catch (Exception e) {
+            throw new RuntimeException("Default product image not found: " + e.getMessage(), e);
         }
     }
 

@@ -6,7 +6,9 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -28,8 +30,8 @@ public class ProductVariant extends BaseEntity {
     private String sku;
 
     @DecimalMin(value = "0.00", message = "Giá vốn phải lớn hơn hoặc bằng 0")
-    @Column(name = "price_cost", precision = 12, scale = 2)
-    private BigDecimal priceCost;
+    @Column(name = "original_price", precision = 12, scale = 2)
+    private BigDecimal originalPrice;
 
     @NotNull(message = "Giá không được để trống")
     @DecimalMin(value = "0.00", message = "Giá phải lớn hơn hoặc bằng 0")
@@ -54,13 +56,13 @@ public class ProductVariant extends BaseEntity {
             inverseJoinColumns = @JoinColumn(name = "attribute_value_id")
     )
     @Builder.Default
-    private Set<AttributeValue> attributeValues = new HashSet<>();
+    private List<AttributeValue> attributeValues = new ArrayList<>();
 
     @OneToMany(mappedBy = "variant")
     @Builder.Default
-    private Set<OrderDetail> orderDetails = new HashSet<>();
+    private List<OrderDetail> orderDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "variant")
     @Builder.Default
-    private Set<CartItem> cartItems = new HashSet<>();
+    private List<CartItem> cartItems = new ArrayList<>();
 }

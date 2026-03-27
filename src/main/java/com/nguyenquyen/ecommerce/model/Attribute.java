@@ -6,8 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "attributes")
@@ -29,5 +29,5 @@ public class Attribute extends BaseEntity {
 
     @OneToMany(mappedBy = "attribute", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private Set<AttributeValue> attributeValues = new HashSet<>();
+    private List<AttributeValue> attributeValues = new ArrayList<>();
 }

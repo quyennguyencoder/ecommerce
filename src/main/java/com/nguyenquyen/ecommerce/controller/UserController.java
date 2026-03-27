@@ -4,13 +4,11 @@ import com.nguyenquyen.ecommerce.dto.ApiResponse;
 import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByEmailRequest;
 import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByPhoneRequest;
 import com.nguyenquyen.ecommerce.dto.request.user.ChangePasswordRequest;
-import com.nguyenquyen.ecommerce.dto.request.user.UserUpdateRequest;
+import com.nguyenquyen.ecommerce.dto.request.user.UpdateUserRequest;
 import com.nguyenquyen.ecommerce.dto.response.UserResponse;
-import com.nguyenquyen.ecommerce.service.IFileService;
 import com.nguyenquyen.ecommerce.service.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
@@ -30,10 +28,7 @@ import java.util.List;
 public class UserController {
 
     private final IUserService userService;
-    private final IFileService fileService;
 
-    @Value("${uploads.avatars}")
-    private String avatarUploadPath;
 
     @PostMapping("/register/email")
     public ResponseEntity<ApiResponse<UserResponse>> registerByEmail(
@@ -90,7 +85,7 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(
             @PathVariable Long id,
-            @Valid @RequestBody UserUpdateRequest request) {
+            @Valid @RequestBody UpdateUserRequest request) {
         UserResponse result = userService.updateUser(id, request);
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .status(HttpStatus.OK)
@@ -142,16 +137,15 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{id}/avatar/upload")
-    public ResponseEntity<ApiResponse<String>> uploadAvatar(
+    @PutMapping("/{id}/avatar")
+    public ResponseEntity<ApiResponse<UserResponse>> uploadAvatar(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file) {
-        String fileName = fileService.uploadAvatar(file);
-        userService.updateUserAvatar(id, fileName);
-        ApiResponse<String> response = ApiResponse.<String>builder()
+        UserResponse userResponse = userService.uploadUserAvatar(id, file);
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .status(HttpStatus.OK)
                 .message("Upload avatar thành công")
-                .data(fileName)
+                .data(userResponse)
                 .build();
         return ResponseEntity.ok(response);
     }
@@ -159,13 +153,12 @@ public class UserController {
     @GetMapping("/{id}/avatar")
     public ResponseEntity<Resource> getAvatar(@PathVariable Long id) {
         try {
-            UserResponse user = userService.getUserById(id);
-            Resource resource = fileService.loadAvatarFile(user.getAvatar());
-            String mediaType = detectMediaType(user.getAvatar());
+            Resource resource = userService.getAvatarFile(id);
+            String mediaType = detectMediaType(resource);
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(mediaType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + (user.getAvatar() != null ? user.getAvatar() : "default-avatar.png") + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
                     .body(resource);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -184,10 +177,10 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    private String detectMediaType(String avatarFileName) {
+    private String detectMediaType(Resource resource) {
         try {
-            if (avatarFileName != null && !avatarFileName.isEmpty()) {
-                String mediaType = Files.probeContentType(Paths.get(avatarUploadPath, avatarFileName));
+            if (resource != null && resource.getFilename() != null) {
+                String mediaType = Files.probeContentType(Paths.get(resource.getFilename()));
                 if (mediaType != null) {
                     return mediaType;
                 }

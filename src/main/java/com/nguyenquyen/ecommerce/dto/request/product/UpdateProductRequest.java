@@ -9,30 +9,31 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class ProductUpdateRequest {
+public class UpdateProductRequest {
 
-    @NotBlank(message = "Tên sản phẩm không được để trống")
     @Size(max = 255, message = "Tên sản phẩm không được vượt quá 255 ký tự")
     private String name;
 
+    @Size(max = 1000, message = "Mô tả không được vượt quá 1000 ký tự")
     private String description;
 
     private String thumbnail;
 
-    @DecimalMin(value = "0.0", message = "Đánh giá phải từ 0.0")
-    @DecimalMax(value = "5.0", message = "Đánh giá không được vượt quá 5.0")
-    private BigDecimal rating;
+    @DecimalMin(value = "0.00", message = "Giá tối thiểu phải lớn hơn hoặc bằng 0")
+    private BigDecimal minPrice;
 
-    @Min(value = 0, message = "Tổng số lượng trong kho phải lớn hơn hoặc bằng 0")
+    @DecimalMin(value = "0.00", message = "Giá tối đa phải lớn hơn hoặc bằng 0")
+    private BigDecimal maxPrice;
+
+    @Min(value = 0, message = "Tổng số lượng phải lớn hơn hoặc bằng 0")
     private Integer totalStock;
 
-    @Size(max = 50, message = "Trạng thái không được vượt quá 50 ký tự")
+    private Boolean isHot;
+
     private String status;
 
     private Long categoryId;
-
-    private Boolean isHot;
 }
