@@ -5,8 +5,8 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
@@ -33,16 +33,14 @@ public class Product extends BaseEntity {
     private String thumbnail;
 
     @Min(value = 0, message = "Số lượng đã bán phải lớn hơn hoặc bằng 0")
-    @Column(name = "sold_quantity")
     private Integer soldQuantity;
 
     @DecimalMin(value = "0.0", message = "Đánh giá phải từ 0.0")
     @DecimalMax(value = "5.0", message = "Đánh giá không được vượt quá 5.0")
-    @Column(name = "rating", precision = 2, scale = 1)
+    @Column(precision = 2, scale = 1)
     private BigDecimal rating;
 
     @Min(value = 0, message = "Số lượt đánh giá phải lớn hơn hoặc bằng 0")
-    @Column(name = "rating_count")
     private Integer ratingCount;
 
     @DecimalMin(value = "0.00", message = "Giá tối thiểu phải lớn hơn hoặc bằng 0")
@@ -70,13 +68,13 @@ public class Product extends BaseEntity {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private Set<ProductVariant> variants = new HashSet<>();
+    private List<ProductVariant> variants = new ArrayList<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private Set<ProductImage> images = new HashSet<>();
+    private List<ProductImage> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "product")
     @Builder.Default
-    private Set<Feedback> feedbacks = new HashSet<>();
+    private List<Feedback> feedbacks = new ArrayList<>();
 }

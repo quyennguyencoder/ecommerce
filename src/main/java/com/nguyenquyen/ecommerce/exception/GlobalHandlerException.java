@@ -15,7 +15,7 @@ public class GlobalHandlerException {
 //
     @ExceptionHandler(value = Exception.class)
     ResponseEntity<ApiResponse<Void>> handleRuntimeException(Exception e) {
-        ApiResponse apiResponse = ApiResponse.<Void>builder()
+        ApiResponse apiResponse = ApiResponse.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .message(e.getMessage())
                 .build();

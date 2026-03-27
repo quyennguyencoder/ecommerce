@@ -67,7 +67,7 @@ CREATE TABLE product_variants (
                                   id INT AUTO_INCREMENT PRIMARY KEY,
                                   product_id INT,
                                   sku VARCHAR(100) UNIQUE,
-                                  price_cost DECIMAL(12,2),
+                                  original_price DECIMAL(12,2),
                                   price DECIMAL(12,2),
                                   stock INT,
                                   image VARCHAR(255),

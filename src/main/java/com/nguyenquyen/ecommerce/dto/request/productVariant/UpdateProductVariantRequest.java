@@ -7,29 +7,27 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class ProductVariantCreateRequest {
+public class UpdateProductVariantRequest {
 
-    @NotBlank(message = "SKU không được để trống")
     @Size(max = 100, message = "SKU không được vượt quá 100 ký tự")
     private String sku;
 
     @DecimalMin(value = "0.00", message = "Giá vốn phải lớn hơn hoặc bằng 0")
-    private BigDecimal priceCost;
+    private BigDecimal originalPrice;
 
-    @NotNull(message = "Giá không được để trống")
     @DecimalMin(value = "0.00", message = "Giá phải lớn hơn hoặc bằng 0")
     private BigDecimal price;
 
     @Min(value = 0, message = "Số lượng trong kho phải lớn hơn hoặc bằng 0")
     private Integer stock;
 
-    private String image;
-
-    @NotNull(message = "Product ID không được để trống")
     private Long productId;
+
+    private List<Long> attributeValueIds;
 }

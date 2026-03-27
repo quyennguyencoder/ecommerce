@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "categories")
@@ -28,5 +28,5 @@ public class Category extends BaseEntity {
 
     @OneToMany(mappedBy = "category")
     @Builder.Default
-    private Set<Product> products = new HashSet<>();
+    private List<Product> products = new ArrayList<>();
 }

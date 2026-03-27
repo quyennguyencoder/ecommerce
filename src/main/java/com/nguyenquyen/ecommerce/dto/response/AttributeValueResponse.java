@@ -1,0 +1,23 @@
+package com.nguyenquyen.ecommerce.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class AttributeValueResponse {
+
+    private Long id;
+    private String value;
+    private Long attributeId;
+    private String attributeName;
+    private Integer variantCount;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}

@@ -31,8 +31,8 @@ spring:
 
 base-url:
 uploads:
-  products: /uploads/products/
-  avatars: /uploads/avatars/
+  products: uploads/products/
+  avatars: uploads/avatars/
 jwt:
   expiration-access-token: 2592000 #30 days = 30 * 24 * 60 * 60
   expiration-refresh-token: 5184000 #60 days = 60 * 24 * 60 * 60

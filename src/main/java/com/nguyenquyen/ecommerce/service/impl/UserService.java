@@ -3,7 +3,7 @@ package com.nguyenquyen.ecommerce.service.impl;
 import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByEmailRequest;
 import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByPhoneRequest;
 import com.nguyenquyen.ecommerce.dto.request.user.ChangePasswordRequest;
-import com.nguyenquyen.ecommerce.dto.request.user.UserUpdateRequest;
+import com.nguyenquyen.ecommerce.dto.request.user.UpdateUserRequest;
 import com.nguyenquyen.ecommerce.dto.response.UserResponse;
 import com.nguyenquyen.ecommerce.mapper.RoleMapper;
 import com.nguyenquyen.ecommerce.mapper.UserMapper;
@@ -11,12 +11,15 @@ import com.nguyenquyen.ecommerce.model.Role;
 import com.nguyenquyen.ecommerce.model.User;
 import com.nguyenquyen.ecommerce.repository.RoleRepository;
 import com.nguyenquyen.ecommerce.repository.UserRepository;
+import com.nguyenquyen.ecommerce.service.IFileService;
 import com.nguyenquyen.ecommerce.service.IUserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -28,6 +31,7 @@ public class UserService implements IUserService {
     private final UserMapper userMapper;
     private final RoleMapper roleMapper;
     private final PasswordEncoder passwordEncoder;
+    private final IFileService fileService;
 
 
 
@@ -91,7 +95,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public UserResponse updateUser(Long id, UserUpdateRequest request) {
+    public UserResponse updateUser(Long id, UpdateUserRequest request) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
@@ -167,13 +171,27 @@ public class UserService implements IUserService {
         userRepository.save(existingUser);
     }
 
+
     @Override
-    public void updateUserAvatar(Long id, String avatarFileName) {
+    public UserResponse uploadUserAvatar(Long id, MultipartFile avatar) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        existingUser.setAvatar(avatarFileName);
-        userRepository.save(existingUser);
+        if (avatar != null && !avatar.isEmpty()) {
+            String avatarFileName = fileService.uploadAvatar(avatar);
+            existingUser.setAvatar(avatarFileName);
+            userRepository.save(existingUser);
+        }
+
+        return userMapper.userToUserResponse(existingUser);
+    }
+
+    @Override
+    public Resource getAvatarFile(Long id) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+
+        return fileService.loadAvatarFile(existingUser.getAvatar());
     }
 
     @Override
