@@ -46,7 +46,7 @@ public class UserService implements IUserService {
                 .orElseThrow(() -> new IllegalArgumentException("Role not found"));
         User newUser = User.builder()
                 .email(request.getEmail())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
                 .gender(request.getGender())
                 .address(request.getAddress())
@@ -69,7 +69,7 @@ public class UserService implements IUserService {
                 .orElseThrow(() -> new IllegalArgumentException("Role not found"));
         User newUser = User.builder()
                 .phone(request.getPhone())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
                 .gender(request.getGender())
                 .address(request.getAddress())
