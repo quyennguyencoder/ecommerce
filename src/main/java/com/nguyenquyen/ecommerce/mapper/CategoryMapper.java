@@ -8,10 +8,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface CategoryMapper {
 
-    @Mapping(
-            target = "productCount",
-            expression = "java(category.getProducts() != null ? category.getProducts().size() : 0)"
-    )
+    @Mapping(target = "productCount", expression = "java(category.getProducts() != null ? category.getProducts().size() : 0)")
     CategoryResponse categoryToCategoryResponse(Category category);
 }
 

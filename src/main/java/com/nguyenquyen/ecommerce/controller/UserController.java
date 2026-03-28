@@ -10,7 +10,6 @@ import com.nguyenquyen.ecommerce.service.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -72,8 +71,7 @@ public class UserController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        List<UserResponse> result = userService.getAllUsers(keyword, role, pageRequest);
+        List<UserResponse> result = userService.getAllUsers(keyword, role, page, size);
         ApiResponse<List<UserResponse>> response = ApiResponse.<List<UserResponse>>builder()
                 .status(HttpStatus.OK)
                 .message("Lấy danh sách user thành công")

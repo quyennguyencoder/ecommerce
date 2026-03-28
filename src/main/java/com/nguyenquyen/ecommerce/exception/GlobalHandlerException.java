@@ -15,22 +15,23 @@ public class GlobalHandlerException {
 //
     @ExceptionHandler(value = Exception.class)
     ResponseEntity<ApiResponse<Void>> handleRuntimeException(Exception e) {
-        ApiResponse apiResponse = ApiResponse.builder()
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .message(e.getMessage())
                 .build();
-        return ResponseEntity.badRequest().body(apiResponse);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    ResponseEntity<ApiResponse> handleValidationException(MethodArgumentNotValidException e) {
-        ApiResponse apiResponse = ApiResponse.builder()
+    ResponseEntity<ApiResponse<Void>> handleValidationException(MethodArgumentNotValidException e) {
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .status(HttpStatus.BAD_REQUEST)
                 .message(e.getFieldError().getDefaultMessage())
                 .build();
-        return ResponseEntity.badRequest().body(apiResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
     }
-//
+
+
 //    @ExceptionHandler(value = AppException.class)
 //    ResponseEntity<ApiResponse> handleAppException(AppException e) {
 //        ErrorCode errorCode = e.getErrorCode();

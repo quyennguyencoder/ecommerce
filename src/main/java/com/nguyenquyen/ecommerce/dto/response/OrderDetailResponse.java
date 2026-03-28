@@ -1,4 +1,4 @@
-package com.nguyenquyen.ecommerce.dto.response.cart;
+package com.nguyenquyen.ecommerce.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,19 +7,20 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class CartResponse {
+public class OrderDetailResponse {
 
     private Long id;
-    private Long userId;
-    private Set<CartItemResponse> cartItems;
-    private Integer totalItems;
-    private BigDecimal totalPrice;
+    private BigDecimal price;
+    private Integer quantity;
+    private Long orderId;
+    private Long variantId;
+    private String variantSku;
+    private String productName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

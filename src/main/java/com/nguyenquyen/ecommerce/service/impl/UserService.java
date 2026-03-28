@@ -16,6 +16,7 @@ import com.nguyenquyen.ecommerce.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -88,7 +89,8 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public List<UserResponse> getAllUsers(String keyword, String role, Pageable pageable) {
+    public List<UserResponse> getAllUsers(String keyword, String role, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         Page<User> userPage = userRepository.findAll(keyword, role, pageable);
         return userPage.map(user -> userMapper.userToUserResponse(user))
                         .getContent();

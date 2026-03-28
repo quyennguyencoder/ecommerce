@@ -3,7 +3,7 @@ package com.nguyenquyen.ecommerce.controller;
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
 import com.nguyenquyen.ecommerce.dto.request.cart.AddToCartRequest;
 import com.nguyenquyen.ecommerce.dto.request.cart.UpdateCartItemRequest;
-import com.nguyenquyen.ecommerce.dto.response.cart.CartResponse;
+import com.nguyenquyen.ecommerce.dto.response.CartResponse;
 import com.nguyenquyen.ecommerce.service.ICartService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

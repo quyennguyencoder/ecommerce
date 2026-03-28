@@ -135,8 +135,16 @@ CREATE TABLE coupons (
 CREATE TABLE orders (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         user_id INT,
-                        coupon_id INT,
+                        name VARCHAR(255),
+                        phone VARCHAR(20),
+                        email VARCHAR(255),
+                        gender VARCHAR(10),
+                        shipping_address VARCHAR(255),
                         note VARCHAR(255),
+                        shipping_method VARCHAR(50),
+                        carrier VARCHAR(100),
+                        shipping_fee DECIMAL(12,2),
+                        coupon_id INT,
                         total DECIMAL(12,2),
                         status VARCHAR(50),
                         created_at DATETIME,
@@ -153,19 +161,6 @@ CREATE TABLE payments (
                           updated_at DATETIME
 );
 
-CREATE TABLE shipping_details (
-                                  id INT AUTO_INCREMENT PRIMARY KEY,
-                                  order_id INT UNIQUE, -- One-to-One
-                                  name VARCHAR(255),
-                                  phone VARCHAR(20),
-                                  email VARCHAR(255),
-                                  gender VARCHAR(10),
-                                  shipping_address VARCHAR(255),
-                                  shipping_method VARCHAR(50),
-                                  carrier VARCHAR(100),
-                                  created_at DATETIME,
-                                  updated_at DATETIME
-);
 
 CREATE TABLE order_details (
                                id INT AUTO_INCREMENT PRIMARY KEY,
@@ -285,12 +280,6 @@ ALTER TABLE payments
             ON DELETE CASCADE
             ON UPDATE CASCADE;
 
--- SHIPPING DETAILS (1-1)
-ALTER TABLE shipping_details
-    ADD CONSTRAINT fk_shipping_orders
-        FOREIGN KEY (order_id) REFERENCES orders(id)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE;
 
 -- ORDER DETAILS
 ALTER TABLE order_details
