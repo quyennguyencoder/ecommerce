@@ -1,6 +1,6 @@
 package com.nguyenquyen.ecommerce.mapper;
 
-import com.nguyenquyen.ecommerce.dto.response.cart.CartResponse;
+import com.nguyenquyen.ecommerce.dto.response.CartResponse;
 import com.nguyenquyen.ecommerce.model.Cart;
 import com.nguyenquyen.ecommerce.model.CartItem;
 import org.mapstruct.Mapper;

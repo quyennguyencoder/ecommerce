@@ -6,7 +6,6 @@ import com.nguyenquyen.ecommerce.dto.request.user.ChangePasswordRequest;
 import com.nguyenquyen.ecommerce.dto.request.user.UpdateUserRequest;
 import com.nguyenquyen.ecommerce.dto.response.UserResponse;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -15,7 +14,7 @@ public interface IUserService {
     UserResponse registerByEmail(RegisterByEmailRequest request);
     UserResponse registerByPhone(RegisterByPhoneRequest request);
     UserResponse getUserById(Long id);
-    List<UserResponse> getAllUsers(String keyword, String roleName, Pageable pageable);
+    List<UserResponse> getAllUsers(String keyword, String roleName, int page, int size);
     UserResponse updateUser(Long id, UpdateUserRequest request);
     void deleteUser(Long id);
     void updateUserRole(Long userId, Long roleId);
