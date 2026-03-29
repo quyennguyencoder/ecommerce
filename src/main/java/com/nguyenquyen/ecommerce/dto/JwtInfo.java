@@ -13,6 +13,7 @@ import java.util.Date;
 @Builder
 public class JwtInfo {
     private String id;              // jti (JWT ID) - UUID
+    private Long userId;            // userId - ID của user
     private String subject;         // sub (subject) - email hoặc phone
     private String roles;           // roles - tên role của user
     private Date issuedAt;          // iat (issued at time)
