@@ -2,7 +2,9 @@ package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
 import com.nguyenquyen.ecommerce.dto.request.auth.LoginRequest;
+import com.nguyenquyen.ecommerce.dto.request.auth.RefreshTokenRequest;
 import com.nguyenquyen.ecommerce.dto.response.auth.LoginResponse;
+import com.nguyenquyen.ecommerce.dto.response.auth.RefreshTokenResponse;
 import com.nguyenquyen.ecommerce.service.IAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +53,27 @@ public class AuthController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             ApiResponse<Void> response = ApiResponse.<Void>builder()
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ApiResponse<RefreshTokenResponse>> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest request) {
+        try {
+            RefreshTokenResponse refreshTokenResponse = authService.refreshToken(request.getRefreshToken());
+
+            ApiResponse<RefreshTokenResponse> response = ApiResponse.<RefreshTokenResponse>builder()
+                    .status(HttpStatus.OK)
+                    .message("Làm mới token thành công")
+                    .data(refreshTokenResponse)
+                    .build();
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ApiResponse<RefreshTokenResponse> response = ApiResponse.<RefreshTokenResponse>builder()
                     .status(HttpStatus.UNAUTHORIZED)
                     .message(e.getMessage())
                     .build();

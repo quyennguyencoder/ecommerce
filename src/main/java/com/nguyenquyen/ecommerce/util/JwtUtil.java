@@ -4,7 +4,6 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nguyenquyen.ecommerce.dto.JwtInfo;
@@ -54,6 +53,7 @@ public class JwtUtil {
                     .jwtID(UUID.randomUUID().toString())
                     .issueTime(new Date())
                     .expirationTime(new Date(System.currentTimeMillis() + expirationTime * 1000))
+                    .claim("userId", user.getId())
                     .claim("roles", user.getRole() != null ? user.getRole().getName() : null);
 
             JWTClaimsSet claimsSet = claimsSetBuilder.build();
@@ -108,6 +108,7 @@ public class JwtUtil {
 
             return JwtInfo.builder()
                     .id(claimsSet.getJWTID())
+                    .userId(((Number) claimsSet.getClaim("userId")).longValue())
                     .subject(claimsSet.getSubject())
                     .roles((String) claimsSet.getClaim("roles"))
                     .issuedAt(claimsSet.getIssueTime())
