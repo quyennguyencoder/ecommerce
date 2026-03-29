@@ -1,0 +1,103 @@
+# Docker Compose file for Ecommerce Application
+#
+# AVAILABLE COMMANDS:
+# ==================
+#
+# 1. Start all containers:
+#    docker-compose up -d
+#
+# 2. Start specific container:
+#    docker-compose up -d mysql
+#    docker-compose up -d redis
+#
+# 3. View logs:
+#    docker-compose logs -f                    # All services
+#    docker-compose logs -f mysql              # MySQL only
+#    docker-compose logs -f redis              # Redis only
+#
+# 4. Stop all containers:
+#    docker-compose down
+#
+# 5. Stop specific container:
+#    docker-compose stop mysql
+#    docker-compose stop redis
+#
+# 6. Start stopped containers:
+#    docker-compose start mysql
+#    docker-compose start redis
+#
+# 7. Restart containers:
+#    docker-compose restart                    # All services
+#    docker-compose restart mysql              # MySQL only
+#    docker-compose restart redis              # Redis only
+#
+# 8. Remove all containers and volumes:
+#    docker-compose down -v
+#
+# 9. Check container status:
+#    docker-compose ps
+#
+# 10. Execute command in container:
+#     docker exec ecommerce-mysql mysql -u root -p -e "SHOW DATABASES;"
+#     docker exec ecommerce-redis redis-cli ping
+#
+# 11. Access MySQL shell:
+#     docker exec -it ecommerce-mysql mysql -u root -proot
+#
+# 12. Access Redis CLI:
+#     docker exec -it ecommerce-redis redis-cli
+#
+# 13. View container resource usage:
+#     docker stats
+#
+# 14. Remove all unused containers and images:
+#     docker system prune
+#
+
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: ecommerce-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ecommerce
+      MYSQL_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Redis Cache
+  redis:
+    image: redis:7
+    container_name: ecommerce-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 20s
+      retries: 10
+
+
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  ecommerce-network:
+    driver: bridge
