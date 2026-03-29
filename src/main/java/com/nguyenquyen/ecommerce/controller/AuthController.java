@@ -8,10 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("${api.prefix}/auth")
@@ -32,6 +29,28 @@ public class AuthController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             ApiResponse<LoginResponse> response = ApiResponse.<LoginResponse>builder()
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .message(e.getMessage())
+                    .build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            // Extract token from Authorization header (Bearer <token>)
+            String token = authHeader.replace("Bearer ", "");
+            authService.logout(token);
+
+            ApiResponse<Void> response = ApiResponse.<Void>builder()
+                    .status(HttpStatus.OK)
+                    .message("Đăng xuất thành công")
+                    .build();
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ApiResponse<Void> response = ApiResponse.<Void>builder()
                     .status(HttpStatus.UNAUTHORIZED)
                     .message(e.getMessage())
                     .build();
