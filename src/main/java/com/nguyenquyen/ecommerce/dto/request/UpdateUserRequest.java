@@ -1,4 +1,4 @@
-package com.nguyenquyen.ecommerce.dto.request.user;
+package com.nguyenquyen.ecommerce.dto.request;
 
 import com.nguyenquyen.ecommerce.enums.Gender;
 import jakarta.validation.constraints.*;

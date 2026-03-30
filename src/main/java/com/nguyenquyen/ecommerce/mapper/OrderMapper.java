@@ -9,6 +9,5 @@ import org.mapstruct.Mapping;
 public interface OrderMapper {
 
     @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "couponId", source = "coupon.id")
     OrderResponse orderToOrderResponse(Order order);
 }

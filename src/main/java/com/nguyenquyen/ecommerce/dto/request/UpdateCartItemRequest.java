@@ -1,4 +1,4 @@
-package com.nguyenquyen.ecommerce.dto.request.cart;
+package com.nguyenquyen.ecommerce.dto.request;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

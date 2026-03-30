@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.attribute.CreateAttributeRequest;
-import com.nguyenquyen.ecommerce.dto.request.attribute.UpdateAttributeRequest;
+import com.nguyenquyen.ecommerce.dto.request.CreateAttributeRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateAttributeRequest;
 import com.nguyenquyen.ecommerce.dto.response.AttributeResponse;
 import com.nguyenquyen.ecommerce.mapper.AttributeMapper;
 import com.nguyenquyen.ecommerce.model.Attribute;

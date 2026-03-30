@@ -1,7 +1,6 @@
 package com.nguyenquyen.ecommerce.service;
 
-import com.nguyenquyen.ecommerce.dto.request.role.RoleCreateRequest;
-import com.nguyenquyen.ecommerce.dto.request.role.RoleUpdateRequest;
+import com.nguyenquyen.ecommerce.dto.request.RoleCreateRequest;
 import com.nguyenquyen.ecommerce.dto.response.RoleResponse;
 
 import java.util.List;

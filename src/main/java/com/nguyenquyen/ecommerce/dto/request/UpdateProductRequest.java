@@ -1,4 +1,4 @@
-package com.nguyenquyen.ecommerce.dto.request.product;
+package com.nguyenquyen.ecommerce.dto.request;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -22,18 +22,15 @@ public class UpdateProductRequest {
 
     private String thumbnail;
 
-    @DecimalMin(value = "0.00", message = "Giá tối thiểu phải lớn hơn hoặc bằng 0")
-    private BigDecimal minPrice;
-
-    @DecimalMin(value = "0.00", message = "Giá tối đa phải lớn hơn hoặc bằng 0")
-    private BigDecimal maxPrice;
+    @DecimalMin(value = "0.00", message = "Giá cơ bản phải lớn hơn hoặc bằng 0")
+    private BigDecimal basePrice;
 
     @Min(value = 0, message = "Tổng số lượng phải lớn hơn hoặc bằng 0")
     private Integer totalStock;
 
     private Boolean isHot;
 
-    private String status;
+    private Boolean active;
 
     private Long categoryId;
 }

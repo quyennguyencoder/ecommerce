@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service;
 
-import com.nguyenquyen.ecommerce.dto.request.category.CreateCategoryRequest;
-import com.nguyenquyen.ecommerce.dto.request.category.UpdateCategoryRequest;
+import com.nguyenquyen.ecommerce.dto.request.CreateCategoryRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateCategoryRequest;
 import com.nguyenquyen.ecommerce.dto.response.CategoryResponse;
 
 import java.util.List;

@@ -1,10 +1,9 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.order.OrderCreateRequest;
-import com.nguyenquyen.ecommerce.dto.request.order.OrderUpdateRequest;
-import com.nguyenquyen.ecommerce.dto.request.order.UpdateOrderStatusRequest;
+import com.nguyenquyen.ecommerce.dto.request.OrderCreateRequest;
 import com.nguyenquyen.ecommerce.dto.response.OrderResponse;
-import com.nguyenquyen.ecommerce.exception.AppException;
+import com.nguyenquyen.ecommerce.enums.OrderStatus;
+import com.nguyenquyen.ecommerce.enums.ShippingMethod;
 import com.nguyenquyen.ecommerce.mapper.OrderMapper;
 import com.nguyenquyen.ecommerce.model.CartItem;
 import com.nguyenquyen.ecommerce.model.Coupon;
@@ -27,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,7 +42,7 @@ public class OrderService implements IOrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<OrderResponse> getAllOrders(String status, int page, int size) {
+    public List<OrderResponse> getAllOrders(OrderStatus status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Order> orders = orderRepository.findAllOrdersWithStatus(status, pageable);
 
@@ -55,9 +53,21 @@ public class OrderService implements IOrderService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<OrderResponse> getMyOrders(int page, int size) {
+        Long currentUserId = securityUtil.getCurrentUserId();
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> orders = orderRepository.findAllByUserId(currentUserId, pageable);
+
+        return orders.getContent().stream()
+                .map(orderMapper::orderToOrderResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public OrderResponse getOrderById(Long id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new AppException("Đơn hàng không tồn tại với id: " + id));
+                .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại với id: " + id));
 
         return orderMapper.orderToOrderResponse(order);
     }
@@ -71,23 +81,23 @@ public class OrderService implements IOrderService {
         // Tạo Order mới
         Order order = Order.builder()
                 .name(request.getName())
+                .gender(request.getGender())
                 .phone(request.getPhone())
                 .email(request.getEmail())
                 .shippingAddress(request.getShippingAddress())
                 .note(request.getNote())
-                .shippingMethod(request.getShippingMethod())
-                .carrier(request.getCarrier())
+                .shippingMethod(request.getShippingMethod() != null ? request.getShippingMethod() : ShippingMethod.STANDARD)
                 .shippingFee(request.getShippingFee())
                 .total(request.getTotal())
-                .status("PENDING")
+                .status(OrderStatus.PENDING)
                 .user(currentUser)
                 .orderDetails(new HashSet<>())
                 .build();
 
-        // Nếu có couponId, lấy và set coupon
-        if (request.getCouponId() != null) {
-            Coupon coupon = couponRepository.findById(request.getCouponId())
-                    .orElseThrow(() -> new AppException("Coupon không tồn tại với id: " + request.getCouponId()));
+        // Nếu có couponCode, lấy và set coupon
+        if (request.getCouponCode() != null && !request.getCouponCode().isEmpty()) {
+            Coupon coupon = couponRepository.findByCode(request.getCouponCode())
+                    .orElseThrow(() -> new RuntimeException("Coupon không tồn tại với code: " + request.getCouponCode()));
             order.setCoupon(coupon);
         }
 
@@ -98,7 +108,7 @@ public class OrderService implements IOrderService {
         if (request.getCartItemIds() != null && !request.getCartItemIds().isEmpty()) {
             for (Long cartItemId : request.getCartItemIds()) {
                 CartItem cartItem = cartItemRepository.findById(cartItemId)
-                        .orElseThrow(() -> new AppException("Cart item không tồn tại với id: " + cartItemId));
+                        .orElseThrow(() -> new RuntimeException("Cart item không tồn tại với id: " + cartItemId));
 
                 // Tạo OrderDetail từ CartItem
                 OrderDetail orderDetail = OrderDetail.builder()
@@ -119,74 +129,14 @@ public class OrderService implements IOrderService {
         return orderMapper.orderToOrderResponse(savedOrder);
     }
 
-    @Override
-    @Transactional
-    public OrderResponse updateOrder(Long id, OrderUpdateRequest request) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new AppException("Đơn hàng không tồn tại với id: " + id));
-
-        // Cập nhật các trường nếu có giá trị
-        if (request.getName() != null && !request.getName().isEmpty()) {
-            order.setName(request.getName());
-        }
-
-        if (request.getPhone() != null && !request.getPhone().isEmpty()) {
-            order.setPhone(request.getPhone());
-        }
-
-        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
-            order.setEmail(request.getEmail());
-        }
-
-        if (request.getShippingAddress() != null && !request.getShippingAddress().isEmpty()) {
-            order.setShippingAddress(request.getShippingAddress());
-        }
-
-        if (request.getNote() != null) {
-            order.setNote(request.getNote());
-        }
-
-        if (request.getShippingMethod() != null && !request.getShippingMethod().isEmpty()) {
-            order.setShippingMethod(request.getShippingMethod());
-        }
-
-        if (request.getCarrier() != null && !request.getCarrier().isEmpty()) {
-            order.setCarrier(request.getCarrier());
-        }
-
-        if (request.getShippingFee() != null) {
-            order.setShippingFee(request.getShippingFee());
-        }
-
-        if (request.getTotal() != null) {
-            order.setTotal(request.getTotal());
-        }
-
-        if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-            order.setStatus(request.getStatus());
-        }
-
-        // Cập nhật coupon nếu có
-        if (request.getCouponId() != null) {
-            Coupon coupon = couponRepository.findById(request.getCouponId())
-                    .orElseThrow(() -> new AppException("Coupon không tồn tại với id: " + request.getCouponId()));
-            order.setCoupon(coupon);
-        } else if (request.getCouponId() == null && order.getCoupon() != null) {
-            // Xóa coupon nếu couponId là null
-            order.setCoupon(null);
-        }
-
-        Order updatedOrder = orderRepository.save(order);
-        return orderMapper.orderToOrderResponse(updatedOrder);
-    }
 
     @Override
     @Transactional
-    public OrderResponse updateOrderStatus(Long id, UpdateOrderStatusRequest request) {
+    public OrderResponse updateOrderStatus(Long id, OrderStatus status) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new AppException("Đơn hàng không tồn tại với id: " + id));
+                .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại với id: " + id));
 
-        order.setStatus(request.getStatus());
+        order.setStatus(status);
         Order updatedOrder = orderRepository.save(order);
         return orderMapper.orderToOrderResponse(updatedOrder);
     }
@@ -195,7 +145,7 @@ public class OrderService implements IOrderService {
     @Transactional
     public void deleteOrder(Long id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new AppException("Đơn hàng không tồn tại với id: " + id));
+                .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại với id: " + id));
 
         orderRepository.delete(order);
     }

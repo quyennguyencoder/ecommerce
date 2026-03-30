@@ -1,6 +1,7 @@
 package com.nguyenquyen.ecommerce.repository;
 
 import com.nguyenquyen.ecommerce.model.Order;
+import com.nguyenquyen.ecommerce.enums.OrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,5 +11,8 @@ import org.springframework.data.repository.query.Param;
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT o FROM Order o WHERE (:status IS NULL OR o.status = :status)")
-    Page<Order> findAllOrdersWithStatus(@Param("status") String status, Pageable pageable);
+    Page<Order> findAllOrdersWithStatus(@Param("status") OrderStatus status, Pageable pageable);
+
+    @Query("SELECT o FROM Order o WHERE o.user.id = :userId ORDER BY o.createdAt DESC")
+    Page<Order> findAllByUserId(@Param("userId") Long userId, Pageable pageable);
 }

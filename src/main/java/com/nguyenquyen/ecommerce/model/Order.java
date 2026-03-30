@@ -1,6 +1,9 @@
 package com.nguyenquyen.ecommerce.model;
 
 
+import com.nguyenquyen.ecommerce.enums.Gender;
+import com.nguyenquyen.ecommerce.enums.ShippingMethod;
+import com.nguyenquyen.ecommerce.enums.OrderStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -27,6 +30,9 @@ public class Order extends BaseEntity {
     @Column(name = "name", length = 255, nullable = false)
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
     @NotBlank(message = "Số điện thoại không được để trống")
     @Pattern(regexp = "^(\\+84|0)[0-9]{9,10}$", message = "Số điện thoại không hợp lệ")
     @Column(name = "phone", length = 20, nullable = false)
@@ -45,13 +51,9 @@ public class Order extends BaseEntity {
     @Column(name = "note", length = 255)
     private String note;
 
-    @Size(max = 50, message = "Phương thức vận chuyển không được vượt quá 50 ký tự")
-    @Column(name = "shipping_method", length = 50)
-    private String shippingMethod; // STANDARD, EXPRESS, SAME_DAY
-
-    @Size(max = 100, message = "Đơn vị vận chuyển không được vượt quá 100 ký tự")
-    @Column(name = "carrier", length = 100)
-    private String carrier; // GHTK, GHN, VN_POST
+    @Enumerated(EnumType.STRING)
+    @Column(name = "shipping_method", length = 50, nullable = false)
+    private ShippingMethod shippingMethod;
 
     @DecimalMin(value = "0.00", message = "Phí vận chuyển phải lớn hơn hoặc bằng 0")
     @Column(name = "shipping_fee", precision = 12, scale = 2)
@@ -62,9 +64,9 @@ public class Order extends BaseEntity {
     @Column(name = "total", precision = 12, scale = 2, nullable = false)
     private BigDecimal total;
 
-    @Size(max = 50, message = "Trạng thái không được vượt quá 50 ký tự")
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 50)
-    private String status;
+    private OrderStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

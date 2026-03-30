@@ -32,7 +32,7 @@ public class User extends BaseEntity implements UserDetails {
     private Gender gender;
     private LocalDate dob;
     private String avatar;
-    private Boolean isActive;
+    private Boolean active;
 
     @ManyToOne
     @JoinColumn(name = "role_id")

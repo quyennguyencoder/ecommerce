@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service;
 
-import com.nguyenquyen.ecommerce.dto.request.productVariant.CreateProductVariantRequest;
-import com.nguyenquyen.ecommerce.dto.request.productVariant.UpdateProductVariantRequest;
+import com.nguyenquyen.ecommerce.dto.request.CreateProductVariantRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateProductVariantRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductVariantResponse;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;

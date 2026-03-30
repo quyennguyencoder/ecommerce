@@ -1,8 +1,8 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.category.CreateCategoryRequest;
-import com.nguyenquyen.ecommerce.dto.request.category.UpdateCategoryRequest;
+import com.nguyenquyen.ecommerce.dto.request.CreateCategoryRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateCategoryRequest;
 import com.nguyenquyen.ecommerce.dto.response.CategoryResponse;
 import com.nguyenquyen.ecommerce.service.ICategoryService;
 import jakarta.validation.Valid;

@@ -1,8 +1,8 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.productVariant.CreateProductVariantRequest;
-import com.nguyenquyen.ecommerce.dto.request.productVariant.UpdateProductVariantRequest;
+import com.nguyenquyen.ecommerce.dto.request.CreateProductVariantRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateProductVariantRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductVariantResponse;
 import com.nguyenquyen.ecommerce.service.IProductVariantService;
 import jakarta.validation.Valid;

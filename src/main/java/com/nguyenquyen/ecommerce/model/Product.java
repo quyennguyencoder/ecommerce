@@ -43,13 +43,9 @@ public class Product extends BaseEntity {
     @Min(value = 0, message = "Số lượt đánh giá phải lớn hơn hoặc bằng 0")
     private Integer ratingCount;
 
-    @DecimalMin(value = "0.00", message = "Giá tối thiểu phải lớn hơn hoặc bằng 0")
-    @Column(name = "min_price", precision = 12, scale = 2)
-    private BigDecimal minPrice;
-
-    @DecimalMin(value = "0.00", message = "Giá tối đa phải lớn hơn hoặc bằng 0")
-    @Column(name = "max_price", precision = 12, scale = 2)
-    private BigDecimal maxPrice;
+    @DecimalMin(value = "0.00", message = "Giá cơ bản phải lớn hơn hoặc bằng 0")
+    @Column(name = "base_price", precision = 12, scale = 2)
+    private BigDecimal basePrice;
 
     @Column(name = "is_hot")
     private Boolean isHot;
@@ -58,9 +54,8 @@ public class Product extends BaseEntity {
     @Column(name = "total_stock")
     private Integer totalStock;
 
-    @Size(max = 50, message = "Trạng thái không được vượt quá 50 ký tự")
-    @Column(name = "status", length = 50)
-    private String status;
+    @Column(name = "active")
+    private Boolean active;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")

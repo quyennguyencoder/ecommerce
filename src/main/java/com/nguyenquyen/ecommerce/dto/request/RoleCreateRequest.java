@@ -1,4 +1,4 @@
-package com.nguyenquyen.ecommerce.dto.request.role;
+package com.nguyenquyen.ecommerce.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
