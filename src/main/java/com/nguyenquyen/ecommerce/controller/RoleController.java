@@ -1,8 +1,7 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.role.RoleCreateRequest;
-import com.nguyenquyen.ecommerce.dto.request.role.RoleUpdateRequest;
+import com.nguyenquyen.ecommerce.dto.request.RoleCreateRequest;
 
 import com.nguyenquyen.ecommerce.dto.response.RoleResponse;
 import com.nguyenquyen.ecommerce.service.IRoleService;

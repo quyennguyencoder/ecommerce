@@ -18,7 +18,7 @@ CREATE TABLE users (
                        avatar VARCHAR(255),
                        gender VARCHAR(10),
                        role_id INT,
-                       is_active BOOLEAN DEFAULT TRUE,
+                       active BOOLEAN DEFAULT 1,
                        created_at DATETIME,
                        updated_at DATETIME
 );
@@ -53,12 +53,11 @@ CREATE TABLE products (
                           sold_quantity INT,
                           rating DECIMAL(2,1),
                           rating_count INT,
-                          min_price DECIMAL(12,2),
-                          max_price DECIMAL(12,2),
+                          base_price DECIMAL(12,2),
                           is_hot BOOLEAN,
                           total_stock INT,
                           category_id INT,
-                          status VARCHAR(50),
+                          active BOOLEAN DEFAULT 1,
                           created_at DATETIME,
                           updated_at DATETIME
 );
@@ -67,7 +66,6 @@ CREATE TABLE product_variants (
                                   id INT AUTO_INCREMENT PRIMARY KEY,
                                   product_id INT,
                                   sku VARCHAR(100) UNIQUE,
-                                  original_price DECIMAL(12,2),
                                   price DECIMAL(12,2),
                                   stock INT,
                                   image VARCHAR(255),
@@ -127,7 +125,7 @@ CREATE TABLE coupons (
                          used_count INT,
                          start_date DATETIME,
                          end_date DATETIME,
-                         status VARCHAR(50),
+                         active BOOLEAN DEFAULT 1,
                          created_at DATETIME,
                          updated_at DATETIME
 );
@@ -136,20 +134,20 @@ CREATE TABLE orders (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         user_id INT,
                         name VARCHAR(255),
+                        gender VARCHAR(10),
                         phone VARCHAR(20),
                         email VARCHAR(255),
-                        gender VARCHAR(10),
                         shipping_address VARCHAR(255),
                         note VARCHAR(255),
                         shipping_method VARCHAR(50),
-                        carrier VARCHAR(100),
                         shipping_fee DECIMAL(12,2),
                         coupon_id INT,
                         total DECIMAL(12,2),
-                        status VARCHAR(50),
+                        status VARCHAR(10),
                         created_at DATETIME,
                         updated_at DATETIME
 );
+
 
 CREATE TABLE payments (
                           id INT AUTO_INCREMENT PRIMARY KEY,

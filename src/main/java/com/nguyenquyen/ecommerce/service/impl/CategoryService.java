@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.category.CreateCategoryRequest;
-import com.nguyenquyen.ecommerce.dto.request.category.UpdateCategoryRequest;
+import com.nguyenquyen.ecommerce.dto.request.CreateCategoryRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateCategoryRequest;
 import com.nguyenquyen.ecommerce.dto.response.CategoryResponse;
 import com.nguyenquyen.ecommerce.mapper.CategoryMapper;
 import com.nguyenquyen.ecommerce.model.Category;

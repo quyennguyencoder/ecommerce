@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.productVariant.CreateProductVariantRequest;
-import com.nguyenquyen.ecommerce.dto.request.productVariant.UpdateProductVariantRequest;
+import com.nguyenquyen.ecommerce.dto.request.CreateProductVariantRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateProductVariantRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductVariantResponse;
 import com.nguyenquyen.ecommerce.mapper.ProductVariantMapper;
 import com.nguyenquyen.ecommerce.model.AttributeValue;
@@ -80,7 +80,6 @@ public class ProductVariantService implements IProductVariantService {
 
         ProductVariant productVariant = ProductVariant.builder()
                 .sku(request.getSku())
-                .originalPrice(request.getOriginalPrice())
                 .price(request.getPrice())
                 .stock(request.getStock())
                 .product(product)
@@ -110,10 +109,6 @@ public class ProductVariantService implements IProductVariantService {
                 throw new RuntimeException("SKU đã tồn tại: " + request.getSku());
             }
             existingProductVariant.setSku(request.getSku());
-        }
-
-        if (request.getOriginalPrice() != null) {
-            existingProductVariant.setOriginalPrice(request.getOriginalPrice());
         }
 
         if (request.getPrice() != null) {

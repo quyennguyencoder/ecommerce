@@ -29,10 +29,6 @@ public class ProductVariant extends BaseEntity {
     @Column(name = "sku", length = 100, unique = true, nullable = false)
     private String sku;
 
-    @DecimalMin(value = "0.00", message = "Giá vốn phải lớn hơn hoặc bằng 0")
-    @Column(name = "original_price", precision = 12, scale = 2)
-    private BigDecimal originalPrice;
-
     @NotNull(message = "Giá không được để trống")
     @DecimalMin(value = "0.00", message = "Giá phải lớn hơn hoặc bằng 0")
     @Column(name = "price", precision = 12, scale = 2, nullable = false)

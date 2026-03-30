@@ -1,8 +1,8 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.product.CreateProductRequest;
-import com.nguyenquyen.ecommerce.dto.request.product.UpdateProductRequest;
+import com.nguyenquyen.ecommerce.dto.request.CreateProductRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateProductRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductResponse;
 import com.nguyenquyen.ecommerce.service.IProductService;
 import jakarta.validation.Valid;
@@ -30,12 +30,12 @@ public class ProductController {
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Boolean active,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        List<ProductResponse> products = productService.getAllProducts(keyword, categoryId, status, pageable);
+        List<ProductResponse> products = productService.getAllProducts(keyword, categoryId, active, pageable);
 
         ApiResponse<List<ProductResponse>> response = ApiResponse.<List<ProductResponse>>builder()
                 .status(HttpStatus.OK)
@@ -152,20 +152,6 @@ public class ProductController {
 
 
 
-    @GetMapping("/images/{imageName}")
-    public ResponseEntity<Resource> getProductImage(@PathVariable String imageName) {
-        try {
-            Resource resource = productService.getProductImage(imageName);
-            String mediaType = detectMediaType(resource);
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(mediaType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                    .body(resource);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 
     private String detectMediaType(Resource resource) {
         try {

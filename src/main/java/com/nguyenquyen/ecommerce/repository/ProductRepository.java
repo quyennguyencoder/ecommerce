@@ -12,11 +12,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p WHERE " +
             "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
             "(:categoryId IS NULL OR p.category.id = :categoryId) AND " +
-            "(:status IS NULL OR p.status = :status)")
+            "(:active IS NULL OR p.active = :active)")
     Page<Product> findAllByFilters(
             @Param("keyword") String keyword,
             @Param("categoryId") Long categoryId,
-            @Param("status") String status,
+            @Param("active") Boolean active,
             Pageable pageable
     );
 

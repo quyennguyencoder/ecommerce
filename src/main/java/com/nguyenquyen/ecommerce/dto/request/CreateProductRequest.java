@@ -1,10 +1,12 @@
-package com.nguyenquyen.ecommerce.dto.request.product;
+package com.nguyenquyen.ecommerce.dto.request;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -19,9 +21,11 @@ public class CreateProductRequest {
     @Size(max = 1000, message = "Mô tả không được vượt quá 1000 ký tự")
     private String description;
 
+    @DecimalMin(value = "0.00", message = "Giá cơ bản phải lớn hơn hoặc bằng 0")
+    private BigDecimal basePrice;
+
     private Boolean isHot;
 
-    private String status;
 
     @NotNull(message = "ID danh mục không được để trống")
     private Long categoryId;

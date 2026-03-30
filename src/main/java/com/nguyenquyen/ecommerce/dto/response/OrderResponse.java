@@ -1,5 +1,8 @@
 package com.nguyenquyen.ecommerce.dto.response;
 
+import com.nguyenquyen.ecommerce.enums.Gender;
+import com.nguyenquyen.ecommerce.enums.ShippingMethod;
+import com.nguyenquyen.ecommerce.enums.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,17 +20,16 @@ public class OrderResponse {
 
     private Long id;
     private String name;
+    private Gender gender;
     private String phone;
     private String email;
     private String shippingAddress;
     private String note;
-    private String shippingMethod;
-    private String carrier;
+    private ShippingMethod shippingMethod;
     private BigDecimal shippingFee;
     private BigDecimal total;
-    private String status;
+    private OrderStatus status;
     private Long userId;
-    private Long couponId;
     private Set<OrderDetailResponse> orderDetails;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

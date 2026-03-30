@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service;
 
-import com.nguyenquyen.ecommerce.dto.request.cart.AddToCartRequest;
-import com.nguyenquyen.ecommerce.dto.request.cart.UpdateCartItemRequest;
+import com.nguyenquyen.ecommerce.dto.request.AddToCartRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateCartItemRequest;
 import com.nguyenquyen.ecommerce.dto.response.CartResponse;
 
 public interface ICartService {

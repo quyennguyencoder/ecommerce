@@ -2,8 +2,8 @@ package com.nguyenquyen.ecommerce.service.impl;
 
 import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByEmailRequest;
 import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByPhoneRequest;
-import com.nguyenquyen.ecommerce.dto.request.user.ChangePasswordRequest;
-import com.nguyenquyen.ecommerce.dto.request.user.UpdateUserRequest;
+import com.nguyenquyen.ecommerce.dto.request.ChangePasswordRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateUserRequest;
 import com.nguyenquyen.ecommerce.dto.response.UserResponse;
 import com.nguyenquyen.ecommerce.mapper.RoleMapper;
 import com.nguyenquyen.ecommerce.mapper.UserMapper;
@@ -52,7 +52,7 @@ public class UserService implements IUserService {
                 .address(request.getAddress())
                 .dob(request.getDob())
                 .role(role)
-                .isActive(true)
+                .active(true)
                 .build();
 
 
@@ -75,7 +75,7 @@ public class UserService implements IUserService {
                 .address(request.getAddress())
                 .dob(request.getDob())
                 .role(role)
-                .isActive(true)
+                .active(true)
                 .build();
         User savedUser = userRepository.save(newUser);
         return userMapper.userToUserResponse(savedUser);
@@ -160,7 +160,7 @@ public class UserService implements IUserService {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        existingUser.setIsActive(false);
+        existingUser.setActive(false);
         userRepository.save(existingUser);
     }
 
@@ -169,7 +169,7 @@ public class UserService implements IUserService {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        existingUser.setIsActive(true);
+        existingUser.setActive(true);
         userRepository.save(existingUser);
     }
 

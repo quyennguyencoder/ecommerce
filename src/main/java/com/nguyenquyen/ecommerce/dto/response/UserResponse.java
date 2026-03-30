@@ -21,7 +21,7 @@ public class UserResponse {
     private LocalDate dob;
     private String address;
     private String avatar;
-    private Boolean isActive;
+    private Boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private RoleResponse role;

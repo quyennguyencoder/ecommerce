@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.product.CreateProductRequest;
-import com.nguyenquyen.ecommerce.dto.request.product.UpdateProductRequest;
+import com.nguyenquyen.ecommerce.dto.request.CreateProductRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateProductRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductResponse;
 import com.nguyenquyen.ecommerce.mapper.ProductMapper;
 import com.nguyenquyen.ecommerce.model.Category;
@@ -32,8 +32,8 @@ public class ProductService implements IProductService {
     private final IFileService fileService;
 
     @Override
-    public List<ProductResponse> getAllProducts(String keyword, Long categoryId, String status, Pageable pageable) {
-        return productRepository.findAllByFilters(keyword, categoryId, status, pageable)
+    public List<ProductResponse> getAllProducts(String keyword, Long categoryId, Boolean active, Pageable pageable) {
+        return productRepository.findAllByFilters(keyword, categoryId, active, pageable)
                 .getContent()
                 .stream()
                 .map(productMapper::productToProductResponse)
@@ -56,9 +56,8 @@ public class ProductService implements IProductService {
                 .name(request.getName())
                 .description(request.getDescription())
                 .isHot(request.getIsHot() != null && request.getIsHot())
-                .status(request.getStatus() != null ? request.getStatus() : "ACTIVE")
-                .maxPrice(BigDecimal.ZERO)
-                .minPrice(BigDecimal.ZERO)
+                .basePrice(request.getBasePrice() != null ? request.getBasePrice() : BigDecimal.ZERO)
+                .active(true)
                 .totalStock(0)
                 .category(category)
                 .soldQuantity(0)
@@ -84,11 +83,8 @@ public class ProductService implements IProductService {
         if (request.getThumbnail() != null) {
             product.setThumbnail(request.getThumbnail());
         }
-        if (request.getMinPrice() != null) {
-            product.setMinPrice(request.getMinPrice());
-        }
-        if (request.getMaxPrice() != null) {
-            product.setMaxPrice(request.getMaxPrice());
+        if (request.getBasePrice() != null) {
+            product.setBasePrice(request.getBasePrice());
         }
         if (request.getTotalStock() != null) {
             product.setTotalStock(request.getTotalStock());
@@ -96,8 +92,8 @@ public class ProductService implements IProductService {
         if (request.getIsHot() != null) {
             product.setIsHot(request.getIsHot());
         }
-        if (request.getStatus() != null) {
-            product.setStatus(request.getStatus());
+        if (request.getActive() != null) {
+            product.setActive(request.getActive());
         }
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())

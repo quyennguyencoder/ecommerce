@@ -1,4 +1,4 @@
-package com.nguyenquyen.ecommerce.dto.request.attributeValue;
+package com.nguyenquyen.ecommerce.dto.request;
 
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;

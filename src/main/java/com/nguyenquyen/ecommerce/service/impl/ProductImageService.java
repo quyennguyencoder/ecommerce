@@ -1,7 +1,5 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.productImage.CreateProductImageRequest;
-import com.nguyenquyen.ecommerce.dto.request.productImage.UpdateProductImageRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductImageResponse;
 import com.nguyenquyen.ecommerce.mapper.ProductImageMapper;
 import com.nguyenquyen.ecommerce.model.Product;
@@ -13,6 +11,7 @@ import com.nguyenquyen.ecommerce.service.IProductImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,20 +49,6 @@ public class ProductImageService implements IProductImageService {
         return productImages.stream()
                 .map(productImageMapper::productImageToProductImageResponse)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public ProductImageResponse createProductImage(CreateProductImageRequest request) {
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại với id: " + request.getProductId()));
-
-        ProductImage productImage = ProductImage.builder()
-                .imageUrl(request.getImageUrl())
-                .product(product)
-                .build();
-
-        ProductImage savedProductImage = productImageRepository.save(productImage);
-        return productImageMapper.productImageToProductImageResponse(savedProductImage);
     }
 
     @Override
@@ -105,5 +90,10 @@ public class ProductImageService implements IProductImageService {
             throw new RuntimeException("Hình ảnh sản phẩm không tồn tại với id: " + id);
         }
         productImageRepository.deleteById(id);
+    }
+
+    @Override
+    public Resource getProductImage(String imageName) {
+        return fileService.loadProductImage(imageName);
     }
 }

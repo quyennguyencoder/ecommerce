@@ -21,11 +21,10 @@ public class ProductResponse {
     private Integer soldQuantity;
     private BigDecimal rating;
     private Integer ratingCount;
-    private BigDecimal minPrice;
-    private BigDecimal maxPrice;
+    private BigDecimal basePrice;
     private Boolean isHot;
     private Integer totalStock;
-    private String status;
+    private Boolean active;
     private Long categoryId;
     private String categoryName;
     private LocalDateTime createdAt;

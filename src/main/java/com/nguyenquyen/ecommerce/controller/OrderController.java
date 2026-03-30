@@ -2,10 +2,9 @@ package com.nguyenquyen.ecommerce.controller;
 
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.order.OrderCreateRequest;
-import com.nguyenquyen.ecommerce.dto.request.order.OrderUpdateRequest;
-import com.nguyenquyen.ecommerce.dto.request.order.UpdateOrderStatusRequest;
+import com.nguyenquyen.ecommerce.dto.request.OrderCreateRequest;
 import com.nguyenquyen.ecommerce.dto.response.OrderResponse;
+import com.nguyenquyen.ecommerce.enums.OrderStatus;
 import com.nguyenquyen.ecommerce.service.IOrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,7 @@ public class OrderController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getAllOrders(
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false) OrderStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         List<OrderResponse> orders = orderService.getAllOrders(status, page, size);
@@ -51,6 +50,21 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/my-orders")
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        List<OrderResponse> orders = orderService.getMyOrders(page, size);
+
+        ApiResponse<List<OrderResponse>> response = ApiResponse.<List<OrderResponse>>builder()
+                .status(HttpStatus.OK)
+                .message("Lấy danh sách đơn hàng của tôi thành công")
+                .data(orders)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
             @Valid @RequestBody OrderCreateRequest request) {
@@ -65,26 +79,12 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<OrderResponse>> updateOrder(
-            @PathVariable Long id,
-            @Valid @RequestBody OrderUpdateRequest request) {
-        OrderResponse order = orderService.updateOrder(id, request);
 
-        ApiResponse<OrderResponse> response = ApiResponse.<OrderResponse>builder()
-                .status(HttpStatus.OK)
-                .message("Cập nhật đơn hàng thành công")
-                .data(order)
-                .build();
-
-        return ResponseEntity.ok(response);
-    }
-
-    @PatchMapping("/{id}/status")
+    @PutMapping("/{id}/status")
     public ResponseEntity<ApiResponse<OrderResponse>> updateOrderStatus(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateOrderStatusRequest request) {
-        OrderResponse order = orderService.updateOrderStatus(id, request);
+            @RequestParam OrderStatus status) {
+        OrderResponse order = orderService.updateOrderStatus(id, status);
 
         ApiResponse<OrderResponse> response = ApiResponse.<OrderResponse>builder()
                 .status(HttpStatus.OK)

@@ -17,7 +17,6 @@ public class ProductVariantResponse {
 
     private Long id;
     private String sku;
-    private BigDecimal originalPrice;
     private BigDecimal price;
     private Integer stock;
     private String image;

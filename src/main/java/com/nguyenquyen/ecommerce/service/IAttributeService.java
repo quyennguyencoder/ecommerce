@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service;
 
-import com.nguyenquyen.ecommerce.dto.request.attribute.CreateAttributeRequest;
-import com.nguyenquyen.ecommerce.dto.request.attribute.UpdateAttributeRequest;
+import com.nguyenquyen.ecommerce.dto.request.CreateAttributeRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateAttributeRequest;
 import com.nguyenquyen.ecommerce.dto.response.AttributeResponse;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.nguyenquyen.ecommerce.dto.request.role;
+package com.nguyenquyen.ecommerce.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -8,12 +8,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class RoleUpdateRequest {
+public class CreateAttributeRequest {
 
-    @NotBlank(message = "Tên role không được để trống")
-    @Size(max = 50, message = "Tên role không được vượt quá 50 ký tự")
+    @NotBlank(message = "Tên thuộc tính không được để trống")
+    @Size(max = 100, message = "Tên thuộc tính không được vượt quá 100 ký tự")
     private String name;
 }

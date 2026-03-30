@@ -2,8 +2,8 @@ package com.nguyenquyen.ecommerce.service.impl;
 
 import com.nguyenquyen.ecommerce.dto.request.auth.LoginRequest;
 import com.nguyenquyen.ecommerce.dto.response.UserResponse;
-import com.nguyenquyen.ecommerce.dto.response.auth.LoginResponse;
-import com.nguyenquyen.ecommerce.dto.response.auth.RefreshTokenResponse;
+import com.nguyenquyen.ecommerce.dto.response.LoginResponse;
+import com.nguyenquyen.ecommerce.dto.response.RefreshTokenResponse;
 import com.nguyenquyen.ecommerce.mapper.UserMapper;
 import com.nguyenquyen.ecommerce.model.User;
 import com.nguyenquyen.ecommerce.repository.UserRepository;

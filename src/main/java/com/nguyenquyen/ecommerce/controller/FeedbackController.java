@@ -1,8 +1,7 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.feedback.FeedbackCreateRequest;
-import com.nguyenquyen.ecommerce.dto.request.feedback.FeedbackUpdateRequest;
+import com.nguyenquyen.ecommerce.dto.request.FeedbackCreateRequest;
 import com.nguyenquyen.ecommerce.dto.response.FeedbackResponse;
 import com.nguyenquyen.ecommerce.service.IFeedbackService;
 import jakarta.validation.Valid;
@@ -66,33 +65,5 @@ public class FeedbackController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<FeedbackResponse>> updateFeedback(
-            @PathVariable Long id,
-            @Valid @RequestBody FeedbackUpdateRequest request) {
-
-        FeedbackResponse feedback = feedbackService.updateFeedback(id, request);
-
-        ApiResponse<FeedbackResponse> response = ApiResponse.<FeedbackResponse>builder()
-                .status(HttpStatus.OK)
-                .message("Cập nhật đánh giá thành công")
-                .data(feedback)
-                .build();
-
-        return ResponseEntity.ok(response);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteFeedback(@PathVariable Long id) {
-        feedbackService.deleteFeedback(id);
-
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
-                .status(HttpStatus.OK)
-                .message("Xóa đánh giá thành công")
-                .build();
-
-        return ResponseEntity.ok(response);
     }
 }

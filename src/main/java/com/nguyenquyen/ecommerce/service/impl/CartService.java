@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.cart.AddToCartRequest;
-import com.nguyenquyen.ecommerce.dto.request.cart.UpdateCartItemRequest;
+import com.nguyenquyen.ecommerce.dto.request.AddToCartRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateCartItemRequest;
 import com.nguyenquyen.ecommerce.dto.response.CartResponse;
 import com.nguyenquyen.ecommerce.mapper.CartMapper;
 import com.nguyenquyen.ecommerce.model.Cart;

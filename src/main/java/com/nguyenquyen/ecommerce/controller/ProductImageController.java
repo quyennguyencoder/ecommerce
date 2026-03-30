@@ -1,13 +1,13 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.productImage.CreateProductImageRequest;
-import com.nguyenquyen.ecommerce.dto.request.productImage.UpdateProductImageRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductImageResponse;
 import com.nguyenquyen.ecommerce.service.IProductImageService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -94,6 +94,21 @@ public class ProductImageController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/image/{imageName}")
+    public ResponseEntity<Resource> getProductImage(@PathVariable String imageName) {
+        try {
+            Resource resource = productImageService.getProductImage(imageName);
+            String mediaType = detectMediaType(resource);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(mediaType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteProductImage(@PathVariable Long id) {
         productImageService.deleteProductImage(id);
@@ -104,5 +119,19 @@ public class ProductImageController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    private String detectMediaType(Resource resource) {
+        try {
+            if (resource != null && resource.getFilename() != null) {
+                String filename = resource.getFilename().toLowerCase();
+                if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
+                    return "image/jpeg";
+                }
+            }
+        } catch (Exception e) {
+            // Ignore exception, use default
+        }
+        return "image/png"; // mặc định trả về PNG
     }
 }

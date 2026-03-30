@@ -1,6 +1,5 @@
-package com.nguyenquyen.ecommerce.dto.response.auth;
+package com.nguyenquyen.ecommerce.dto.response;
 
-import com.nguyenquyen.ecommerce.dto.response.UserResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,10 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LoginResponse {
+public class RefreshTokenResponse {
     private String accessToken;
     private String refreshToken;
     private String tokenType;
     private Long expiresIn; // milliseconds
-    private UserResponse user;
 }

@@ -1,4 +1,4 @@
-package com.nguyenquyen.ecommerce.dto.request.feedback;
+package com.nguyenquyen.ecommerce.dto.request;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FeedbackUpdateRequest {
+public class FeedbackCreateRequest {
 
     @NotNull(message = "Số sao không được để trống")
     @Min(value = 1, message = "Số sao phải từ 1")
@@ -20,4 +20,7 @@ public class FeedbackUpdateRequest {
     private Integer star;
 
     private String content;
+
+    @NotNull(message = "Product ID không được để trống")
+    private Long productId;
 }

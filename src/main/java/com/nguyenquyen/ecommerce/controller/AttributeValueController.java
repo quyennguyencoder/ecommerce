@@ -1,8 +1,8 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.attributeValue.CreateAttributeValueRequest;
-import com.nguyenquyen.ecommerce.dto.request.attributeValue.UpdateAttributeValueRequest;
+import com.nguyenquyen.ecommerce.dto.request.CreateAttributeValueRequest;
+import com.nguyenquyen.ecommerce.dto.request.UpdateAttributeValueRequest;
 import com.nguyenquyen.ecommerce.dto.response.AttributeValueResponse;
 import com.nguyenquyen.ecommerce.service.IAttributeValueService;
 import jakarta.validation.Valid;
