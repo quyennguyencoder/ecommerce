@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateProductRequest {
+public class ProductCreateRequest {
 
     @NotBlank(message = "Tên sản phẩm không được để trống")
     @Size(max = 255, message = "Tên sản phẩm không được vượt quá 255 ký tự")
@@ -26,6 +26,7 @@ public class CreateProductRequest {
 
     private Boolean isHot;
 
+    private Boolean active;
 
     @NotNull(message = "ID danh mục không được để trống")
     private Long categoryId;

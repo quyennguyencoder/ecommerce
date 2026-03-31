@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.CreateProductVariantRequest;
-import com.nguyenquyen.ecommerce.dto.request.UpdateProductVariantRequest;
+import com.nguyenquyen.ecommerce.dto.request.ProductVariantCreateRequest;
+import com.nguyenquyen.ecommerce.dto.request.ProductVarianUpdatetRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductVariantResponse;
 import com.nguyenquyen.ecommerce.mapper.ProductVariantMapper;
 import com.nguyenquyen.ecommerce.model.AttributeValue;
@@ -69,7 +69,7 @@ public class ProductVariantService implements IProductVariantService {
     }
 
     @Override
-    public ProductVariantResponse createProductVariant(CreateProductVariantRequest request) {
+    public ProductVariantResponse createProductVariant(ProductVariantCreateRequest request) {
         // Check if SKU already exists
         if (productVariantRepository.existsBySku(request.getSku())) {
             throw new RuntimeException("SKU đã tồn tại: " + request.getSku());
@@ -99,7 +99,7 @@ public class ProductVariantService implements IProductVariantService {
     }
 
     @Override
-    public ProductVariantResponse updateProductVariant(Long id, UpdateProductVariantRequest request) {
+    public ProductVariantResponse updateProductVariant(Long id, ProductVarianUpdatetRequest request) {
         ProductVariant existingProductVariant = productVariantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Biến thể sản phẩm không tồn tại với id: " + id));
 

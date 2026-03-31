@@ -1,4 +1,4 @@
-package com.nguyenquyen.ecommerce.dto.request.auth;
+package com.nguyenquyen.ecommerce.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RefreshTokenRequest {
+public class AuthRefreshTokenRequest {
     @NotBlank(message = "Refresh token is required")
     private String refreshToken;
 }

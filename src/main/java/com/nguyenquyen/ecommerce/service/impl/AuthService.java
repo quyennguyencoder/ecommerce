@@ -1,6 +1,6 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.auth.LoginRequest;
+import com.nguyenquyen.ecommerce.dto.request.AuthLoginRequest;
 import com.nguyenquyen.ecommerce.dto.response.UserResponse;
 import com.nguyenquyen.ecommerce.dto.response.LoginResponse;
 import com.nguyenquyen.ecommerce.dto.response.RefreshTokenResponse;
@@ -38,7 +38,7 @@ public class AuthService implements IAuthService {
     private long expirationRefreshToken;
 
     @Override
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponse login(AuthLoginRequest request) {
         try {
             // Authenticate user
             Authentication authentication = authenticationManager.authenticate(

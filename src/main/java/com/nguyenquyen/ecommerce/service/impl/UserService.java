@@ -1,9 +1,9 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByEmailRequest;
-import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByPhoneRequest;
-import com.nguyenquyen.ecommerce.dto.request.ChangePasswordRequest;
-import com.nguyenquyen.ecommerce.dto.request.UpdateUserRequest;
+import com.nguyenquyen.ecommerce.dto.request.UserRegisterByEmailRequest;
+import com.nguyenquyen.ecommerce.dto.request.UserRegisterByPhoneRequest;
+import com.nguyenquyen.ecommerce.dto.request.UserChangePasswordRequest;
+import com.nguyenquyen.ecommerce.dto.request.UserUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.UserResponse;
 import com.nguyenquyen.ecommerce.mapper.RoleMapper;
 import com.nguyenquyen.ecommerce.mapper.UserMapper;
@@ -38,7 +38,7 @@ public class UserService implements IUserService {
 
 
     @Override
-    public UserResponse registerByEmail(RegisterByEmailRequest request) {
+    public UserResponse registerByEmail(UserRegisterByEmailRequest request) {
         if(userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
@@ -61,7 +61,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public UserResponse registerByPhone(RegisterByPhoneRequest request) {
+    public UserResponse registerByPhone(UserRegisterByPhoneRequest request) {
         if(userRepository.existsByPhone(request.getPhone())) {
             throw new IllegalArgumentException("Email already exists");
         }
@@ -97,7 +97,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public UserResponse updateUser(Long id, UpdateUserRequest request) {
+    public UserResponse updateUser(Long id, UserUpdateRequest request) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
@@ -197,7 +197,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public void changePassword(Long userId, ChangePasswordRequest request) {
+    public void changePassword(Long userId, UserChangePasswordRequest request) {
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 

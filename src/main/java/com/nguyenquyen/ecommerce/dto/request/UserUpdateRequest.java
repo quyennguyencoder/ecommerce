@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UpdateUserRequest {
+public class UserUpdateRequest {
 
     @Email(message = "Email không hợp lệ")
     private String email;

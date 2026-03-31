@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateProductRequest {
+public class ProductUpdateRequest {
 
     @Size(max = 255, message = "Tên sản phẩm không được vượt quá 255 ký tự")
     private String name;
@@ -20,7 +20,6 @@ public class UpdateProductRequest {
     @Size(max = 1000, message = "Mô tả không được vượt quá 1000 ký tự")
     private String description;
 
-    private String thumbnail;
 
     @DecimalMin(value = "0.00", message = "Giá cơ bản phải lớn hơn hoặc bằng 0")
     private BigDecimal basePrice;

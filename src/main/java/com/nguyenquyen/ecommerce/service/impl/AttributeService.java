@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.CreateAttributeRequest;
-import com.nguyenquyen.ecommerce.dto.request.UpdateAttributeRequest;
+import com.nguyenquyen.ecommerce.dto.request.AttributeCreateRequest;
+import com.nguyenquyen.ecommerce.dto.request.AttributeUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.AttributeResponse;
 import com.nguyenquyen.ecommerce.mapper.AttributeMapper;
 import com.nguyenquyen.ecommerce.model.Attribute;
@@ -36,7 +36,7 @@ public class AttributeService implements IAttributeService {
     }
 
     @Override
-    public AttributeResponse createAttribute(CreateAttributeRequest request) {
+    public AttributeResponse createAttribute(AttributeCreateRequest request) {
         Attribute attribute = Attribute.builder()
                 .name(request.getName())
                 .build();
@@ -46,7 +46,7 @@ public class AttributeService implements IAttributeService {
     }
 
     @Override
-    public AttributeResponse updateAttribute(Long id, UpdateAttributeRequest request) {
+    public AttributeResponse updateAttribute(Long id, AttributeUpdateRequest request) {
         Attribute existingAttribute = attributeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Thuộc tính không tồn tại với id: " + id));
 

@@ -1,8 +1,9 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.auth.LoginRequest;
-import com.nguyenquyen.ecommerce.dto.request.auth.RefreshTokenRequest;
+
+import com.nguyenquyen.ecommerce.dto.request.AuthRefreshTokenRequest;
+import com.nguyenquyen.ecommerce.dto.request.AuthLoginRequest;
 import com.nguyenquyen.ecommerce.dto.response.LoginResponse;
 import com.nguyenquyen.ecommerce.dto.response.RefreshTokenResponse;
 import com.nguyenquyen.ecommerce.service.IAuthService;
@@ -20,7 +21,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
-            @Valid @RequestBody LoginRequest request) {
+            @Valid @RequestBody AuthLoginRequest request) {
         try {
             LoginResponse loginResponse = authService.login(request);
             ApiResponse<LoginResponse> response = ApiResponse.<LoginResponse>builder()
@@ -62,7 +63,7 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<ApiResponse<RefreshTokenResponse>> refreshToken(
-            @Valid @RequestBody RefreshTokenRequest request) {
+            @Valid @RequestBody AuthRefreshTokenRequest request) {
         try {
             RefreshTokenResponse refreshTokenResponse = authService.refreshToken(request.getRefreshToken());
 

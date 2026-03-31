@@ -1,8 +1,8 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.CreateCategoryRequest;
-import com.nguyenquyen.ecommerce.dto.request.UpdateCategoryRequest;
+import com.nguyenquyen.ecommerce.dto.request.CategoryCreateRequest;
+import com.nguyenquyen.ecommerce.dto.request.CategoryUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.CategoryResponse;
 import com.nguyenquyen.ecommerce.service.ICategoryService;
 import jakarta.validation.Valid;
@@ -48,7 +48,7 @@ public class CategoryController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(
-            @Valid @RequestBody CreateCategoryRequest request) {
+            @Valid @RequestBody CategoryCreateRequest request) {
 
         CategoryResponse category = categoryService.createCategory(request);
 
@@ -64,7 +64,7 @@ public class CategoryController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateCategoryRequest request) {
+            @Valid @RequestBody CategoryUpdateRequest request) {
 
         CategoryResponse category = categoryService.updateCategory(id, request);
 

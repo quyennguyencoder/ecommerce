@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AddToCartRequest {
+public class CartAddToCartRequest {
 
     @NotNull(message = "Variant ID không được để trống")
     private Long variantId;

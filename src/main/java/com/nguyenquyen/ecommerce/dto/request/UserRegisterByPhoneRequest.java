@@ -1,4 +1,4 @@
-package com.nguyenquyen.ecommerce.dto.request.auth;
+package com.nguyenquyen.ecommerce.dto.request;
 
 import com.nguyenquyen.ecommerce.enums.Gender;
 import jakarta.validation.constraints.*;
@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RegisterByPhoneRequest {
+public class UserRegisterByPhoneRequest {
 
     @Pattern(regexp = "^(\\+84|0)[0-9]{9,10}$", message = "Số điện thoại không hợp lệ")
     private String phone;
