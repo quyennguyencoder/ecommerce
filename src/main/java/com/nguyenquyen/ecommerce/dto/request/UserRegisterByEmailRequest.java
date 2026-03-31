@@ -1,4 +1,4 @@
-package com.nguyenquyen.ecommerce.dto.request.auth;
+package com.nguyenquyen.ecommerce.dto.request;
 
 import com.nguyenquyen.ecommerce.enums.Gender;
 import jakarta.validation.constraints.*;
@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RegisterByEmailRequest {
+public class UserRegisterByEmailRequest {
     @Email(message = "Email không hợp lệ")
     @NotBlank(message = "Email không được để trống")
     private String email;

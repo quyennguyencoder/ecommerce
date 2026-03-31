@@ -1,8 +1,8 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.CreateAttributeRequest;
-import com.nguyenquyen.ecommerce.dto.request.UpdateAttributeRequest;
+import com.nguyenquyen.ecommerce.dto.request.AttributeCreateRequest;
+import com.nguyenquyen.ecommerce.dto.request.AttributeUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.AttributeResponse;
 import com.nguyenquyen.ecommerce.service.IAttributeService;
 import jakarta.validation.Valid;
@@ -48,7 +48,7 @@ public class AttributeController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<AttributeResponse>> createAttribute(
-            @Valid @RequestBody CreateAttributeRequest request) {
+            @Valid @RequestBody AttributeCreateRequest request) {
 
         AttributeResponse attribute = attributeService.createAttribute(request);
 
@@ -64,7 +64,7 @@ public class AttributeController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<AttributeResponse>> updateAttribute(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateAttributeRequest request) {
+            @Valid @RequestBody AttributeUpdateRequest request) {
 
         AttributeResponse attribute = attributeService.updateAttribute(id, request);
 

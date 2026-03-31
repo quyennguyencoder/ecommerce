@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.CreateProductRequest;
-import com.nguyenquyen.ecommerce.dto.request.UpdateProductRequest;
+import com.nguyenquyen.ecommerce.dto.request.ProductCreateRequest;
+import com.nguyenquyen.ecommerce.dto.request.ProductUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductResponse;
 import com.nguyenquyen.ecommerce.mapper.ProductMapper;
 import com.nguyenquyen.ecommerce.model.Category;
@@ -48,7 +48,7 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public ProductResponse createProduct(CreateProductRequest request) {
+    public ProductResponse createProduct(ProductCreateRequest request) {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
 
@@ -57,7 +57,7 @@ public class ProductService implements IProductService {
                 .description(request.getDescription())
                 .isHot(request.getIsHot() != null && request.getIsHot())
                 .basePrice(request.getBasePrice() != null ? request.getBasePrice() : BigDecimal.ZERO)
-                .active(true)
+                .active(request.getActive() != null && request.getActive())
                 .totalStock(0)
                 .category(category)
                 .soldQuantity(0)
@@ -70,7 +70,7 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public ProductResponse updateProduct(Long id, UpdateProductRequest request) {
+    public ProductResponse updateProduct(Long id, ProductUpdateRequest request) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
 
@@ -79,9 +79,6 @@ public class ProductService implements IProductService {
         }
         if (request.getDescription() != null) {
             product.setDescription(request.getDescription());
-        }
-        if (request.getThumbnail() != null) {
-            product.setThumbnail(request.getThumbnail());
         }
         if (request.getBasePrice() != null) {
             product.setBasePrice(request.getBasePrice());

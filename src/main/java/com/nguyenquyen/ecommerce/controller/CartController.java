@@ -1,8 +1,8 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.AddToCartRequest;
-import com.nguyenquyen.ecommerce.dto.request.UpdateCartItemRequest;
+import com.nguyenquyen.ecommerce.dto.request.CartAddToCartRequest;
+import com.nguyenquyen.ecommerce.dto.request.CartItemUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.CartResponse;
 import com.nguyenquyen.ecommerce.service.ICartService;
 import jakarta.validation.Valid;
@@ -33,7 +33,7 @@ public class CartController {
 
     @PostMapping("/items")
     public ResponseEntity<ApiResponse<CartResponse>> addToCart(
-            @Valid @RequestBody AddToCartRequest request) {
+            @Valid @RequestBody CartAddToCartRequest request) {
 
         CartResponse cart = cartService.addToCart(request);
 
@@ -49,7 +49,7 @@ public class CartController {
     @PutMapping("/items/{cartItemId}")
     public ResponseEntity<ApiResponse<CartResponse>> updateCartItem(
             @PathVariable Long cartItemId,
-            @Valid @RequestBody UpdateCartItemRequest request) {
+            @Valid @RequestBody CartItemUpdateRequest request) {
 
         CartResponse cart = cartService.updateCartItem(cartItemId, request);
 

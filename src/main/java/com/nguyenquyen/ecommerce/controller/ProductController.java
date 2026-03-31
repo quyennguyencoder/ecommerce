@@ -1,8 +1,8 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.CreateProductRequest;
-import com.nguyenquyen.ecommerce.dto.request.UpdateProductRequest;
+import com.nguyenquyen.ecommerce.dto.request.ProductCreateRequest;
+import com.nguyenquyen.ecommerce.dto.request.ProductUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductResponse;
 import com.nguyenquyen.ecommerce.service.IProductService;
 import jakarta.validation.Valid;
@@ -61,7 +61,7 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<ProductResponse>> createProduct(
-            @Valid @RequestBody CreateProductRequest request) {
+            @Valid @RequestBody ProductCreateRequest request) {
 
         ProductResponse product = productService.createProduct(request);
 
@@ -77,7 +77,7 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateProductRequest request) {
+            @Valid @RequestBody ProductUpdateRequest request) {
 
         ProductResponse product = productService.updateProduct(id, request);
 

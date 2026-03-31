@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.CreateCategoryRequest;
-import com.nguyenquyen.ecommerce.dto.request.UpdateCategoryRequest;
+import com.nguyenquyen.ecommerce.dto.request.CategoryCreateRequest;
+import com.nguyenquyen.ecommerce.dto.request.CategoryUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.CategoryResponse;
 import com.nguyenquyen.ecommerce.mapper.CategoryMapper;
 import com.nguyenquyen.ecommerce.model.Category;
@@ -36,7 +36,7 @@ public class CategoryService implements ICategoryService {
     }
 
     @Override
-    public CategoryResponse createCategory(CreateCategoryRequest request) {
+    public CategoryResponse createCategory(CategoryCreateRequest request) {
         Category category = Category.builder()
                 .name(request.getName())
                 .build();
@@ -46,7 +46,7 @@ public class CategoryService implements ICategoryService {
     }
 
     @Override
-    public CategoryResponse updateCategory(Long id, UpdateCategoryRequest request) {
+    public CategoryResponse updateCategory(Long id, CategoryUpdateRequest request) {
         Category existingCategory = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại với id: " + id));
 

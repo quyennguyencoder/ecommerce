@@ -1,8 +1,8 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.CreateProductVariantRequest;
-import com.nguyenquyen.ecommerce.dto.request.UpdateProductVariantRequest;
+import com.nguyenquyen.ecommerce.dto.request.ProductVariantCreateRequest;
+import com.nguyenquyen.ecommerce.dto.request.ProductVarianUpdatetRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductVariantResponse;
 import com.nguyenquyen.ecommerce.service.IProductVariantService;
 import jakarta.validation.Valid;
@@ -86,7 +86,7 @@ public class ProductVariantController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<ProductVariantResponse>> createProductVariant(
-            @Valid @RequestBody CreateProductVariantRequest request) {
+            @Valid @RequestBody ProductVariantCreateRequest request) {
 
         ProductVariantResponse productVariant = productVariantService.createProductVariant(request);
 
@@ -102,7 +102,7 @@ public class ProductVariantController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductVariantResponse>> updateProductVariant(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateProductVariantRequest request) {
+            @Valid @RequestBody ProductVarianUpdatetRequest request) {
 
         ProductVariantResponse productVariant = productVariantService.updateProductVariant(id, request);
 

@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.AddToCartRequest;
-import com.nguyenquyen.ecommerce.dto.request.UpdateCartItemRequest;
+import com.nguyenquyen.ecommerce.dto.request.CartAddToCartRequest;
+import com.nguyenquyen.ecommerce.dto.request.CartItemUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.CartResponse;
 import com.nguyenquyen.ecommerce.mapper.CartMapper;
 import com.nguyenquyen.ecommerce.model.Cart;
@@ -51,7 +51,7 @@ public class CartService implements ICartService {
     }
 
     @Override
-    public CartResponse addToCart(AddToCartRequest request) {
+    public CartResponse addToCart(CartAddToCartRequest request) {
         // Lấy cart của user hiện tại
         Cart cart = getCurrentUserCart();
 
@@ -86,7 +86,7 @@ public class CartService implements ICartService {
     }
 
     @Override
-    public CartResponse updateCartItem(Long cartItemId, UpdateCartItemRequest request) {
+    public CartResponse updateCartItem(Long cartItemId, CartItemUpdateRequest request) {
         // Lấy cart item từ database
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm trong giỏ hàng với ID: " + cartItemId));

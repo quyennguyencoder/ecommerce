@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChangePasswordRequest {
+public class UserChangePasswordRequest {
 
     @NotBlank(message = "Mật khẩu cũ không được để trống")
     private String oldPassword;

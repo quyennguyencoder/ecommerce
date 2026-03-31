@@ -1,10 +1,10 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByEmailRequest;
-import com.nguyenquyen.ecommerce.dto.request.auth.RegisterByPhoneRequest;
-import com.nguyenquyen.ecommerce.dto.request.ChangePasswordRequest;
-import com.nguyenquyen.ecommerce.dto.request.UpdateUserRequest;
+import com.nguyenquyen.ecommerce.dto.request.UserRegisterByEmailRequest;
+import com.nguyenquyen.ecommerce.dto.request.UserRegisterByPhoneRequest;
+import com.nguyenquyen.ecommerce.dto.request.UserChangePasswordRequest;
+import com.nguyenquyen.ecommerce.dto.request.UserUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.UserResponse;
 import com.nguyenquyen.ecommerce.service.IUserService;
 import jakarta.validation.Valid;
@@ -31,7 +31,7 @@ public class UserController {
 
     @PostMapping("/register/email")
     public ResponseEntity<ApiResponse<UserResponse>> registerByEmail(
-            @Valid @RequestBody RegisterByEmailRequest request) {
+            @Valid @RequestBody UserRegisterByEmailRequest request) {
         UserResponse userResponse = userService.registerByEmail(request);
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .status(HttpStatus.CREATED)
@@ -43,7 +43,7 @@ public class UserController {
 
     @PostMapping("/register/phone")
     public ResponseEntity<ApiResponse<UserResponse>> registerByPhone(
-            @Valid @RequestBody RegisterByPhoneRequest request) {
+            @Valid @RequestBody UserRegisterByPhoneRequest request) {
         UserResponse userResponse = userService.registerByPhone(request);
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .status(HttpStatus.CREATED)
@@ -83,7 +83,7 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateUserRequest request) {
+            @Valid @RequestBody UserUpdateRequest request) {
         UserResponse result = userService.updateUser(id, request);
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .status(HttpStatus.OK)
@@ -166,7 +166,7 @@ public class UserController {
     @PutMapping("/{id}/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
             @PathVariable Long id,
-            @Valid @RequestBody ChangePasswordRequest request) {
+            @Valid @RequestBody UserChangePasswordRequest request) {
         userService.changePassword(id, request);
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.OK)

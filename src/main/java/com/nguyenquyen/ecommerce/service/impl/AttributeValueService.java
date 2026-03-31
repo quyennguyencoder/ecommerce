@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.CreateAttributeValueRequest;
-import com.nguyenquyen.ecommerce.dto.request.UpdateAttributeValueRequest;
+import com.nguyenquyen.ecommerce.dto.request.AttributeValueCreateRequest;
+import com.nguyenquyen.ecommerce.dto.request.AttributeValueUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.AttributeValueResponse;
 import com.nguyenquyen.ecommerce.mapper.AttributeValueMapper;
 import com.nguyenquyen.ecommerce.model.Attribute;
@@ -50,7 +50,7 @@ public class AttributeValueService implements IAttributeValueService {
     }
 
     @Override
-    public AttributeValueResponse createAttributeValue(CreateAttributeValueRequest request) {
+    public AttributeValueResponse createAttributeValue(AttributeValueCreateRequest request) {
         Attribute attribute = attributeRepository.findById(request.getAttributeId())
                 .orElseThrow(() -> new RuntimeException("Thuộc tính không tồn tại với id: " + request.getAttributeId()));
 
@@ -64,7 +64,7 @@ public class AttributeValueService implements IAttributeValueService {
     }
 
     @Override
-    public AttributeValueResponse updateAttributeValue(Long id, UpdateAttributeValueRequest request) {
+    public AttributeValueResponse updateAttributeValue(Long id, AttributeValueUpdateRequest request) {
         AttributeValue existingAttributeValue = attributeValueRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Giá trị thuộc tính không tồn tại với id: " + id));
 
