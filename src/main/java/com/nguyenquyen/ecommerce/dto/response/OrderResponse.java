@@ -3,6 +3,8 @@ package com.nguyenquyen.ecommerce.dto.response;
 import com.nguyenquyen.ecommerce.enums.Gender;
 import com.nguyenquyen.ecommerce.enums.ShippingMethod;
 import com.nguyenquyen.ecommerce.enums.OrderStatus;
+import com.nguyenquyen.ecommerce.enums.PaymentStatus;
+import com.nguyenquyen.ecommerce.enums.PaymentMethod;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,6 +32,9 @@ public class OrderResponse {
     private BigDecimal total;
     private OrderStatus status;
     private Long userId;
+    private PaymentStatus paymentStatus;
+    private PaymentMethod paymentMethod;
+    private String paymentUrl;
     private Set<OrderDetailResponse> orderDetails;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

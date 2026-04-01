@@ -1,10 +1,12 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
+import com.nguyenquyen.ecommerce.dto.PaginationResponse;
 import com.nguyenquyen.ecommerce.dto.request.ProductVariantCreateRequest;
-import com.nguyenquyen.ecommerce.dto.request.ProductVarianUpdatetRequest;
+import com.nguyenquyen.ecommerce.dto.request.ProductVariantUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductVariantResponse;
 import com.nguyenquyen.ecommerce.service.IProductVariantService;
+import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -19,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+
 @RestController
 @RequestMapping("${api.prefix}/product-variants")
 @RequiredArgsConstructor
@@ -26,22 +29,6 @@ public class ProductVariantController {
 
     private final IProductVariantService productVariantService;
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductVariantResponse>>> getAllProductVariants(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        List<ProductVariantResponse> productVariants = productVariantService.getAllProductVariants(pageable);
-
-        ApiResponse<List<ProductVariantResponse>> response = ApiResponse.<List<ProductVariantResponse>>builder()
-                .status(HttpStatus.OK)
-                .message("Lấy danh sách biến thể sản phẩm thành công")
-                .data(productVariants)
-                .build();
-
-        return ResponseEntity.ok(response);
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductVariantResponse>> getProductVariantById(@PathVariable Long id) {
@@ -102,7 +89,7 @@ public class ProductVariantController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductVariantResponse>> updateProductVariant(
             @PathVariable Long id,
-            @Valid @RequestBody ProductVarianUpdatetRequest request) {
+            @Valid @RequestBody ProductVariantUpdateRequest request) {
 
         ProductVariantResponse productVariant = productVariantService.updateProductVariant(id, request);
 
@@ -141,35 +128,6 @@ public class ProductVariantController {
                 .build();
 
         return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/{id}/image")
-    public ResponseEntity<Resource> getProductVariantImage(@PathVariable Long id) {
-        try {
-            Resource resource = productVariantService.getProductVariantImage(id);
-            String mediaType = detectMediaType(resource);
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(mediaType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                    .body(resource);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    private String detectMediaType(Resource resource) {
-        try {
-            if (resource != null && resource.getFilename() != null) {
-                String filename = resource.getFilename().toLowerCase();
-                if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
-                    return "image/jpeg";
-                }
-            }
-        } catch (Exception e) {
-            // Ignore exception, use default
-        }
-        return "image/png"; // mặc định trả về PNG
     }
 }
 

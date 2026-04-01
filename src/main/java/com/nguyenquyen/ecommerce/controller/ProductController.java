@@ -1,10 +1,12 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
+import com.nguyenquyen.ecommerce.dto.PaginationResponse;
 import com.nguyenquyen.ecommerce.dto.request.ProductCreateRequest;
 import com.nguyenquyen.ecommerce.dto.request.ProductUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductResponse;
 import com.nguyenquyen.ecommerce.service.IProductService;
+import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -17,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix}/products")
@@ -27,7 +28,7 @@ public class ProductController {
     private final IProductService productService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllProducts(
+    public ResponseEntity<ApiResponse<PaginationResponse<ProductResponse>>> getAllProducts(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Boolean active,
@@ -35,12 +36,13 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        List<ProductResponse> products = productService.getAllProducts(keyword, categoryId, active, pageable);
+        var productPage = productService.getAllProducts(keyword, categoryId, active, pageable);
+        PaginationResponse<ProductResponse> paginationResponse = PaginationUtil.toPaginationResponse(productPage);
 
-        ApiResponse<List<ProductResponse>> response = ApiResponse.<List<ProductResponse>>builder()
+        ApiResponse<PaginationResponse<ProductResponse>> response = ApiResponse.<PaginationResponse<ProductResponse>>builder()
                 .status(HttpStatus.OK)
                 .message("Lấy danh sách sản phẩm thành công")
-                .data(products)
+                .data(paginationResponse)
                 .build();
 
         return ResponseEntity.ok(response);
@@ -106,20 +108,6 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}/thumbnail")
-    public ResponseEntity<Resource> getProductThumbnail(@PathVariable Long id) {
-        try {
-            Resource resource = productService.getThumbnailFile(id);
-            String mediaType = detectMediaType(resource);
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(mediaType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                    .body(resource);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Long id) {
@@ -134,36 +122,20 @@ public class ProductController {
     }
 
     @GetMapping("/hot")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> getHotProducts(
+    public ResponseEntity<ApiResponse<PaginationResponse<ProductResponse>>> getHotProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        List<ProductResponse> products = productService.getHotProducts(pageable);
+        var productPage = productService.getHotProducts(pageable);
+        PaginationResponse<ProductResponse> paginationResponse = PaginationUtil.toPaginationResponse(productPage);
 
-        ApiResponse<List<ProductResponse>> response = ApiResponse.<List<ProductResponse>>builder()
+        ApiResponse<PaginationResponse<ProductResponse>> response = ApiResponse.<PaginationResponse<ProductResponse>>builder()
                 .status(HttpStatus.OK)
                 .message("Lấy danh sách sản phẩm hot thành công")
-                .data(products)
+                .data(paginationResponse)
                 .build();
 
         return ResponseEntity.ok(response);
-    }
-
-
-
-
-    private String detectMediaType(Resource resource) {
-        try {
-            if (resource != null && resource.getFilename() != null) {
-                String filename = resource.getFilename().toLowerCase();
-                if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
-                    return "image/jpeg";
-                }
-            }
-        } catch (Exception e) {
-            // Ignore exception, use default
-        }
-        return "image/png"; // mặc định trả về PNG
     }
 }

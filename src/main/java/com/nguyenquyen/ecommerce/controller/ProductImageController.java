@@ -1,10 +1,14 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
+import com.nguyenquyen.ecommerce.dto.PaginationResponse;
 import com.nguyenquyen.ecommerce.dto.response.ProductImageResponse;
 import com.nguyenquyen.ecommerce.service.IProductImageService;
+import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+
 @RestController
 @RequestMapping("${api.prefix}/product-images")
 @RequiredArgsConstructor
@@ -21,18 +26,6 @@ public class ProductImageController {
 
     private final IProductImageService productImageService;
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductImageResponse>>> getAllProductImages() {
-        List<ProductImageResponse> productImages = productImageService.getAllProductImages();
-
-        ApiResponse<List<ProductImageResponse>> response = ApiResponse.<List<ProductImageResponse>>builder()
-                .status(HttpStatus.OK)
-                .message("Lấy danh sách hình ảnh sản phẩm thành công")
-                .data(productImages)
-                .build();
-
-        return ResponseEntity.ok(response);
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductImageResponse>> getProductImageById(@PathVariable Long id) {
@@ -94,21 +87,6 @@ public class ProductImageController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/image/{imageName}")
-    public ResponseEntity<Resource> getProductImage(@PathVariable String imageName) {
-        try {
-            Resource resource = productImageService.getProductImage(imageName);
-            String mediaType = detectMediaType(resource);
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(mediaType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                    .body(resource);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteProductImage(@PathVariable Long id) {
         productImageService.deleteProductImage(id);
@@ -119,19 +97,5 @@ public class ProductImageController {
                 .build();
 
         return ResponseEntity.ok(response);
-    }
-
-    private String detectMediaType(Resource resource) {
-        try {
-            if (resource != null && resource.getFilename() != null) {
-                String filename = resource.getFilename().toLowerCase();
-                if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
-                    return "image/jpeg";
-                }
-            }
-        } catch (Exception e) {
-            // Ignore exception, use default
-        }
-        return "image/png"; // mặc định trả về PNG
     }
 }

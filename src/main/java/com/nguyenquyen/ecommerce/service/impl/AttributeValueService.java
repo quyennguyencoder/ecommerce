@@ -10,6 +10,8 @@ import com.nguyenquyen.ecommerce.repository.AttributeRepository;
 import com.nguyenquyen.ecommerce.repository.AttributeValueRepository;
 import com.nguyenquyen.ecommerce.service.IAttributeValueService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,8 +27,8 @@ public class AttributeValueService implements IAttributeValueService {
 
     @Override
     public List<AttributeValueResponse> getAllAttributeValues() {
-        List<AttributeValue> attributeValues = attributeValueRepository.findAll();
-        return attributeValues.stream()
+        return attributeValueRepository.findAll()
+                .stream()
                 .map(attributeValueMapper::attributeValueToAttributeValueResponse)
                 .collect(Collectors.toList());
     }

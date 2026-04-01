@@ -2,8 +2,10 @@ package com.nguyenquyen.ecommerce.model;
 
 
 import com.nguyenquyen.ecommerce.enums.Gender;
+import com.nguyenquyen.ecommerce.enums.PaymentStatus;
 import com.nguyenquyen.ecommerce.enums.ShippingMethod;
 import com.nguyenquyen.ecommerce.enums.OrderStatus;
+import com.nguyenquyen.ecommerce.enums.PaymentMethod;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -68,6 +70,14 @@ public class Order extends BaseEntity {
     @Column(name = "status", length = 50)
     private OrderStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", length = 50)
+    private PaymentStatus paymentStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", length = 50)
+    private PaymentMethod paymentMethod;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -80,6 +90,7 @@ public class Order extends BaseEntity {
     @Builder.Default
     private Set<OrderDetail> orderDetails = new HashSet<>();
 
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Payment payment;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<Payment> payments = new HashSet<>();
 }

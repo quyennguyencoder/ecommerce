@@ -43,7 +43,7 @@ public class AuthService implements IAuthService {
             // Authenticate user
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
+                            request.getEmailOrPhone(),
                             request.getPassword()
                     )
             );
@@ -74,7 +74,7 @@ public class AuthService implements IAuthService {
                     .build();
 
         } catch (Exception e) {
-            log.error("Login failed for user: {}", request.getUsername(), e);
+            log.error("Login failed for user: {}", request.getEmailOrPhone(), e);
             throw new RuntimeException("Email/Phone hoặc mật khẩu không đúng", e);
         }
     }

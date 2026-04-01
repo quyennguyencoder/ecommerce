@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @Service
 @RequiredArgsConstructor
 public class CategoryService implements ICategoryService {
@@ -22,8 +23,8 @@ public class CategoryService implements ICategoryService {
 
     @Override
     public List<CategoryResponse> getAllCategories() {
-        List<Category> categories = categoryRepository.findAll();
-        return categories.stream()
+        return categoryRepository.findAll()
+                .stream()
                 .map(categoryMapper::categoryToCategoryResponse)
                 .collect(Collectors.toList());
     }

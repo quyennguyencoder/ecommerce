@@ -14,12 +14,12 @@ import com.nguyenquyen.ecommerce.service.IFileService;
 import com.nguyenquyen.ecommerce.service.IProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,12 +32,9 @@ public class ProductService implements IProductService {
     private final IFileService fileService;
 
     @Override
-    public List<ProductResponse> getAllProducts(String keyword, Long categoryId, Boolean active, Pageable pageable) {
+    public Page<ProductResponse> getAllProducts(String keyword, Long categoryId, Boolean active, Pageable pageable) {
         return productRepository.findAllByFilters(keyword, categoryId, active, pageable)
-                .getContent()
-                .stream()
-                .map(productMapper::productToProductResponse)
-                .toList();
+                .map(productMapper::productToProductResponse);
     }
 
     @Override
@@ -108,7 +105,7 @@ public class ProductService implements IProductService {
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
 
         if (thumbnail != null && !thumbnail.isEmpty()) {
-            String fileName = fileService.uploadProductImage(thumbnail);
+            String fileName = fileService.uploadFile(thumbnail);
             product.setThumbnail(fileName);
 
             // Lưu thumbnail vào ProductImage
@@ -131,24 +128,9 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public List<ProductResponse> getHotProducts(Pageable pageable) {
+    public Page<ProductResponse> getHotProducts(Pageable pageable) {
         return productRepository.findHotProducts(pageable)
-                .getContent()
-                .stream()
-                .map(productMapper::productToProductResponse)
-                .toList();
+                .map(productMapper::productToProductResponse);
     }
 
-    @Override
-    public Resource getThumbnailFile(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
-
-        return fileService.loadProductImage(product.getThumbnail());
-    }
-
-    @Override
-    public Resource getProductImage(String imageName) {
-        return fileService.loadProductImage(imageName);
-    }
 }

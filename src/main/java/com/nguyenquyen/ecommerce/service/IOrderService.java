@@ -3,12 +3,12 @@ package com.nguyenquyen.ecommerce.service;
 import com.nguyenquyen.ecommerce.dto.request.OrderCreateRequest;
 import com.nguyenquyen.ecommerce.dto.response.OrderResponse;
 import com.nguyenquyen.ecommerce.enums.OrderStatus;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface IOrderService {
-    List<OrderResponse> getAllOrders(OrderStatus status, int page, int size);
-    List<OrderResponse> getMyOrders(int page, int size);
+    Page<OrderResponse> getAllOrders(OrderStatus status, Pageable pageable);
+    Page<OrderResponse> getMyOrders(Pageable pageable);
     OrderResponse getOrderById(Long id);
     OrderResponse createOrder(OrderCreateRequest request);
     OrderResponse updateOrderStatus(Long id, OrderStatus status);

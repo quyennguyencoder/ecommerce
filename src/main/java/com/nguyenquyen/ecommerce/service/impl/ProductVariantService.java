@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
 import com.nguyenquyen.ecommerce.dto.request.ProductVariantCreateRequest;
-import com.nguyenquyen.ecommerce.dto.request.ProductVarianUpdatetRequest;
+import com.nguyenquyen.ecommerce.dto.request.ProductVariantUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductVariantResponse;
 import com.nguyenquyen.ecommerce.mapper.ProductVariantMapper;
 import com.nguyenquyen.ecommerce.model.AttributeValue;
@@ -35,13 +35,6 @@ public class ProductVariantService implements IProductVariantService {
     private final IFileService fileService;
     private final ProductImageRepository productImageRepository;
 
-    @Override
-    public List<ProductVariantResponse> getAllProductVariants(Pageable pageable) {
-        Page<ProductVariant> productVariants = productVariantRepository.findAll(pageable);
-        return productVariants.stream()
-                .map(productVariantMapper::productVariantToProductVariantResponse)
-                .collect(Collectors.toList());
-    }
 
     @Override
     public ProductVariantResponse getProductVariantById(Long id) {
@@ -99,7 +92,7 @@ public class ProductVariantService implements IProductVariantService {
     }
 
     @Override
-    public ProductVariantResponse updateProductVariant(Long id, ProductVarianUpdatetRequest request) {
+    public ProductVariantResponse updateProductVariant(Long id, ProductVariantUpdateRequest request) {
         ProductVariant existingProductVariant = productVariantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Biến thể sản phẩm không tồn tại với id: " + id));
 
@@ -148,7 +141,7 @@ public class ProductVariantService implements IProductVariantService {
                 .orElseThrow(() -> new RuntimeException("Biến thể sản phẩm không tồn tại với id: " + id));
 
         if (image != null && !image.isEmpty()) {
-            String imageName = fileService.uploadProductImage(image);
+            String imageName = fileService.uploadFile(image);
             productVariant.setImage(imageName);
             productVariantRepository.save(productVariant);
 
@@ -162,13 +155,5 @@ public class ProductVariantService implements IProductVariantService {
         }
 
         return productVariantMapper.productVariantToProductVariantResponse(productVariant);
-    }
-
-    @Override
-    public Resource getProductVariantImage(Long id) {
-        ProductVariant productVariant = productVariantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Biến thể sản phẩm không tồn tại với id: " + id));
-
-        return fileService.loadProductImage(productVariant.getImage());
     }
 }

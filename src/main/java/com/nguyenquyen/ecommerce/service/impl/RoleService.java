@@ -7,9 +7,13 @@ import com.nguyenquyen.ecommerce.model.Role;
 import com.nguyenquyen.ecommerce.repository.RoleRepository;
 import com.nguyenquyen.ecommerce.service.IRoleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -28,9 +32,9 @@ public class RoleService implements IRoleService {
 
     @Override
     public List<RoleResponse> getAllRoles() {
-        List<Role> allRoles = roleRepository.findAll();
-        return allRoles.stream()
-                .map(role -> roleMapper.roleToRoleResponse(role))
-                .toList();
+        return roleRepository.findAll()
+                .stream()
+                .map(roleMapper::roleToRoleResponse)
+                .collect(Collectors.toList());
     }
 }

@@ -4,29 +4,31 @@ import com.nguyenquyen.ecommerce.dto.request.OrderCreateRequest;
 import com.nguyenquyen.ecommerce.dto.response.OrderResponse;
 import com.nguyenquyen.ecommerce.enums.OrderStatus;
 import com.nguyenquyen.ecommerce.enums.ShippingMethod;
+import com.nguyenquyen.ecommerce.enums.PaymentMethod;
+import com.nguyenquyen.ecommerce.enums.PaymentStatus;
+import com.nguyenquyen.ecommerce.enums.TransactionStatus;
 import com.nguyenquyen.ecommerce.mapper.OrderMapper;
 import com.nguyenquyen.ecommerce.model.CartItem;
 import com.nguyenquyen.ecommerce.model.Coupon;
 import com.nguyenquyen.ecommerce.model.Order;
 import com.nguyenquyen.ecommerce.model.OrderDetail;
+import com.nguyenquyen.ecommerce.model.Payment;
 import com.nguyenquyen.ecommerce.model.User;
 import com.nguyenquyen.ecommerce.repository.CartItemRepository;
 import com.nguyenquyen.ecommerce.repository.CouponRepository;
 import com.nguyenquyen.ecommerce.repository.OrderDetailRepository;
 import com.nguyenquyen.ecommerce.repository.OrderRepository;
+import com.nguyenquyen.ecommerce.repository.PaymentRepository;
 import com.nguyenquyen.ecommerce.repository.UserRepository;
 import com.nguyenquyen.ecommerce.service.IOrderService;
 import com.nguyenquyen.ecommerce.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,30 +39,23 @@ public class OrderService implements IOrderService {
     private final CouponRepository couponRepository;
     private final CartItemRepository cartItemRepository;
     private final OrderDetailRepository orderDetailRepository;
+    private final PaymentRepository paymentRepository;
     private final OrderMapper orderMapper;
     private final SecurityUtil securityUtil;
 
     @Override
     @Transactional(readOnly = true)
-    public List<OrderResponse> getAllOrders(OrderStatus status, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public Page<OrderResponse> getAllOrders(OrderStatus status, Pageable pageable) {
         Page<Order> orders = orderRepository.findAllOrdersWithStatus(status, pageable);
-
-        return orders.getContent().stream()
-                .map(orderMapper::orderToOrderResponse)
-                .collect(Collectors.toList());
+        return orders.map(orderMapper::orderToOrderResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<OrderResponse> getMyOrders(int page, int size) {
+    public Page<OrderResponse> getMyOrders(Pageable pageable) {
         Long currentUserId = securityUtil.getCurrentUserId();
-        Pageable pageable = PageRequest.of(page, size);
         Page<Order> orders = orderRepository.findAllByUserId(currentUserId, pageable);
-
-        return orders.getContent().stream()
-                .map(orderMapper::orderToOrderResponse)
-                .collect(Collectors.toList());
+        return orders.map(orderMapper::orderToOrderResponse);
     }
 
     @Override
@@ -90,6 +85,8 @@ public class OrderService implements IOrderService {
                 .shippingFee(request.getShippingFee())
                 .total(request.getTotal())
                 .status(OrderStatus.PENDING)
+                .paymentStatus(PaymentStatus.UNPAID)
+                .paymentMethod(request.getPaymentMethod())
                 .user(currentUser)
                 .orderDetails(new HashSet<>())
                 .build();
@@ -103,6 +100,18 @@ public class OrderService implements IOrderService {
 
         // Lưu order trước
         Order savedOrder = orderRepository.save(order);
+
+        // Tạo Payment record chỉ khi phương thức thanh toán không phải COD
+        if (request.getPaymentMethod() != PaymentMethod.COD) {
+            Payment payment = Payment.builder()
+                    .paymentMethod(request.getPaymentMethod())
+                    .transactionStatus(TransactionStatus.PENDING)
+                    .order(savedOrder)
+                    .build();
+
+            Payment savedPayment = paymentRepository.save(payment);
+            savedOrder.getPayments().add(savedPayment);
+        }
 
         // Xử lý cartItemIds để tạo OrderDetail
         if (request.getCartItemIds() != null && !request.getCartItemIds().isEmpty()) {
@@ -126,7 +135,16 @@ public class OrderService implements IOrderService {
             savedOrder = orderRepository.save(savedOrder);
         }
 
-        return orderMapper.orderToOrderResponse(savedOrder);
+        // Map Order sang OrderResponse
+        OrderResponse orderResponse = orderMapper.orderToOrderResponse(savedOrder);
+
+        // Gán paymentUrl nếu payment method là VNPAY
+        if (request.getPaymentMethod() == PaymentMethod.VNPAY) {
+            String paymentUrl = generateVNPayPaymentUrl(savedOrder);
+            orderResponse.setPaymentUrl(paymentUrl);
+        }
+
+        return orderResponse;
     }
 
 
@@ -148,5 +166,12 @@ public class OrderService implements IOrderService {
                 .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại với id: " + id));
 
         orderRepository.delete(order);
+    }
+
+
+    private String generateVNPayPaymentUrl(Order order) {
+        // Placeholder cho URL VNPay
+        // Trong thực tế, bạn sẽ cần gọi VNPay API để tạo URL thanh toán thực
+        return "https://vnpay.vn/pay?orderCode=" + order.getId() + "&amount=" + order.getTotal();
     }
 }
