@@ -2,6 +2,7 @@ package com.nguyenquyen.ecommerce.dto.request;
 
 import com.nguyenquyen.ecommerce.enums.Gender;
 import com.nguyenquyen.ecommerce.enums.ShippingMethod;
+import com.nguyenquyen.ecommerce.enums.PaymentMethod;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.*;
@@ -50,6 +51,10 @@ public class OrderCreateRequest {
     private BigDecimal total;
 
     private String couponCode;
+
+    @NotNull(message = "Phương thức thanh toán không được để trống")
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 
     @NotEmpty(message = "Danh sách cart item không được để trống")
     private List<Long> cartItemIds;

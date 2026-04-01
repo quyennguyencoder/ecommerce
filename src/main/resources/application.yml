@@ -29,14 +29,23 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
-base-url:
+base-url: http://localhost:8080/
 uploads:
+  dir: uploads/
   products: uploads/products/
   avatars: uploads/avatars/
 jwt:
   expiration-access-token: 2592000 #30 days = 30 * 24 * 60 * 60
   expiration-refresh-token: 5184000 #60 days = 60 * 24 * 60 * 60
   secret-key: +H0WZ2cfLZ/6E8OIG/OI9JB9j2ZUpMKVSeWEc0dRCRsT+NqVdBZbWyrMLzsgg1LjPdcb62eiRZYm0AC5j59Ie5PLCYjwIFqBwzuCPRVvnXI=
+
+vnpay:
+  tmn-code: K2WES1JG
+  hash-secret: B26TWEYQS9EZ433DEIKT7E3XOJR3GSEW
+  payment-url: https://sandbox.vnpayment.vn/paygate/pay.html
+  return-url: http://localhost:8080/api/v1/payments/vnpay/return
+  ipn-url: http://localhost:8080/api/v1/payments/vnpay/ipn
+  api-url: https://sandbox.vnpayment.vn/merchant_webapi/merchant.html
 
 
 

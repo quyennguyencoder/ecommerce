@@ -2,17 +2,20 @@ package com.nguyenquyen.ecommerce.controller;
 
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
+import com.nguyenquyen.ecommerce.dto.PaginationResponse;
 import com.nguyenquyen.ecommerce.dto.request.OrderCreateRequest;
 import com.nguyenquyen.ecommerce.dto.response.OrderResponse;
 import com.nguyenquyen.ecommerce.enums.OrderStatus;
 import com.nguyenquyen.ecommerce.service.IOrderService;
+import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix}/orders")
@@ -22,16 +25,18 @@ public class OrderController {
     private final IOrderService orderService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getAllOrders(
+    public ResponseEntity<ApiResponse<PaginationResponse<OrderResponse>>> getAllOrders(
             @RequestParam(required = false) OrderStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        List<OrderResponse> orders = orderService.getAllOrders(status, page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        var orderPage = orderService.getAllOrders(status, pageable);
+        PaginationResponse<OrderResponse> paginationResponse = PaginationUtil.toPaginationResponse(orderPage);
 
-        ApiResponse<List<OrderResponse>> response = ApiResponse.<List<OrderResponse>>builder()
+        ApiResponse<PaginationResponse<OrderResponse>> response = ApiResponse.<PaginationResponse<OrderResponse>>builder()
                 .status(HttpStatus.OK)
                 .message("Lấy danh sách đơn hàng thành công")
-                .data(orders)
+                .data(paginationResponse)
                 .build();
 
         return ResponseEntity.ok(response);
@@ -51,15 +56,17 @@ public class OrderController {
     }
 
     @GetMapping("/my-orders")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(
+    public ResponseEntity<ApiResponse<PaginationResponse<OrderResponse>>> getMyOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        List<OrderResponse> orders = orderService.getMyOrders(page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        var orderPage = orderService.getMyOrders(pageable);
+        PaginationResponse<OrderResponse> paginationResponse = PaginationUtil.toPaginationResponse(orderPage);
 
-        ApiResponse<List<OrderResponse>> response = ApiResponse.<List<OrderResponse>>builder()
+        ApiResponse<PaginationResponse<OrderResponse>> response = ApiResponse.<PaginationResponse<OrderResponse>>builder()
                 .status(HttpStatus.OK)
                 .message("Lấy danh sách đơn hàng của tôi thành công")
-                .data(orders)
+                .data(paginationResponse)
                 .build();
 
         return ResponseEntity.ok(response);

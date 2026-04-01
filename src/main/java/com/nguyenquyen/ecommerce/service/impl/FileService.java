@@ -17,123 +17,82 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class FileService implements IFileService {
-    @Value("${uploads.avatars}")
-    private String avatarUploadPath;
 
-    @Value("${uploads.products}")
-    private String productUploadPath;
+    @Value("${file.upload-dir:uploads}")
+    private String uploadDir;
 
-    @Override
-    public String uploadAvatar(MultipartFile file) {
-        return uploadFile(file, avatarUploadPath, "avatar");
-    }
+    @Value("${base-url:http://localhost:8080/}")
+    private String baseUrl;
 
     @Override
-    public String uploadProductImage(MultipartFile file) {
-        return uploadFile(file, productUploadPath, "product");
-    }
-
-    @Override
-    public Resource loadAvatarFile(String avatarFileName) {
-        try {
-            // Check if avatar file name is null or empty
-            if (avatarFileName == null || avatarFileName.isEmpty()) {
-                return loadDefaultAvatar();
-            }
-
-            // Try to load avatar file
-            Path avatarPath = Paths.get(avatarUploadPath, avatarFileName);
-            if (Files.exists(avatarPath)) {
-                return new FileSystemResource(avatarPath);
-            }
-
-            // File not found, return default avatar
-            return loadDefaultAvatar();
-        } catch (Exception e) {
-            return loadDefaultAvatar();
-        }
-    }
-
-    @Override
-    public Resource loadProductImage(String productImageFileName) {
-        try {
-            // Check if product image file name is null or empty
-            if (productImageFileName == null || productImageFileName.isEmpty()) {
-                return loadDefaultProductImage();
-            }
-
-            // Try to load product image file
-            Path productImagePath = Paths.get(productUploadPath, productImageFileName);
-            if (Files.exists(productImagePath)) {
-                return new FileSystemResource(productImagePath);
-            }
-
-            // File not found, return default product image
-            return loadDefaultProductImage();
-        } catch (Exception e) {
-            return loadDefaultProductImage();
-        }
-    }
-
-
-    private Resource loadDefaultAvatar() {
-        try {
-            // Try to load default avatar from classpath or upload directory
-            Path defaultAvatarPath = Paths.get(avatarUploadPath, "default-avatar.png");
-
-            if (Files.exists(defaultAvatarPath)) {
-                return new FileSystemResource(defaultAvatarPath);
-            }
-
-            // If no default avatar file exists, try from classpath
-            return new org.springframework.core.io.ClassPathResource("static/images/default-avatar.png");
-        } catch (Exception e) {
-            throw new RuntimeException("Default avatar not found: " + e.getMessage(), e);
-        }
-    }
-
-    private Resource loadDefaultProductImage() {
-        try {
-            // Try to load default product image from classpath or upload directory
-            Path defaultProductImagePath = Paths.get(productUploadPath, "default-product.png");
-
-            if (Files.exists(defaultProductImagePath)) {
-                return new FileSystemResource(defaultProductImagePath);
-            }
-
-            // If no default product image file exists, try from classpath
-            return new org.springframework.core.io.ClassPathResource("static/images/default-product.png");
-        } catch (Exception e) {
-            throw new RuntimeException("Default product image not found: " + e.getMessage(), e);
-        }
-    }
-
-    private String uploadFile(MultipartFile file, String uploadPath, String fileType) {
+    public String uploadFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File is empty");
         }
 
+        // Kiểm tra định dạng file (chỉ cho phép JPEG và PNG)
+        String originalFilename = file.getOriginalFilename();
+        if (!isValidFileType(originalFilename)) {
+            throw new IllegalArgumentException("File type not allowed. Only JPEG and PNG are supported");
+        }
+
         try {
-            // Create directory if not exists
-            Path uploadDir = Paths.get(uploadPath);
-            if (!Files.exists(uploadDir)) {
-                Files.createDirectories(uploadDir);
+            // Tạo thư mục nếu chưa tồn tại
+            Path uploadDirPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadDirPath)) {
+                Files.createDirectories(uploadDirPath);
             }
 
-            // Generate unique file name
-            String originalFilename = file.getOriginalFilename();
+            // Tạo tên file duy nhất
             String fileExtension = getFileExtension(originalFilename);
-            String uniqueFileName = fileType + "_" + UUID.randomUUID() + "." + fileExtension;
+            String uniqueFileName = UUID.randomUUID() + "." + fileExtension;
 
-            // Save file
-            Path filePath = uploadDir.resolve(uniqueFileName);
+            // Lưu file
+            Path filePath = uploadDirPath.resolve(uniqueFileName);
             Files.write(filePath, file.getBytes());
 
-            return uniqueFileName;
+            return baseUrl + "api/v1/files/" + uniqueFileName;
         } catch (IOException e) {
             throw new RuntimeException("Failed to upload file: " + e.getMessage(), e);
         }
     }
+
+    @Override
+    public Resource loadFile(String fileName) {
+        try {
+            // Xây dựng đường dẫn file
+            Path filePath = Paths.get(uploadDir, fileName).normalize();
+            java.io.File file = filePath.toFile();
+
+            // Kiểm tra file tồn tại
+            if (!file.exists() || !file.isFile()) {
+                throw new RuntimeException("File không tồn tại: " + fileName);
+            }
+
+            // Kiểm tra path traversal attack
+            String uploadDirAbsolute = new java.io.File(uploadDir).getCanonicalPath();
+            String fileAbsolute = file.getCanonicalPath();
+            if (!fileAbsolute.startsWith(uploadDirAbsolute)) {
+                throw new RuntimeException("Access denied: " + fileName);
+            }
+
+            // Trả về Resource
+            return new FileSystemResource(file);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load file: " + e.getMessage(), e);
+        }
+    }
+
+
+    private boolean isValidFileType(String filename) {
+        if (filename == null || filename.isEmpty()) {
+            return false;
+        }
+        String lowerFilename = filename.toLowerCase();
+        return lowerFilename.endsWith(".jpg") || lowerFilename.endsWith(".jpeg") || lowerFilename.endsWith(".png");
+    }
+
 
     private String getFileExtension(String filename) {
         if (filename == null || filename.isEmpty()) {

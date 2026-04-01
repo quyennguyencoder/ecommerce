@@ -1,6 +1,6 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
-import com.nguyenquyen.ecommerce.dto.request.UserRegisterByEmailRequest;
+import com.nguyenquyen.ecommerce.dto.request.UserCreateRequest;
 import com.nguyenquyen.ecommerce.dto.request.UserRegisterByPhoneRequest;
 import com.nguyenquyen.ecommerce.dto.request.UserChangePasswordRequest;
 import com.nguyenquyen.ecommerce.dto.request.UserUpdateRequest;
@@ -13,16 +13,13 @@ import com.nguyenquyen.ecommerce.repository.RoleRepository;
 import com.nguyenquyen.ecommerce.repository.UserRepository;
 import com.nguyenquyen.ecommerce.service.IFileService;
 import com.nguyenquyen.ecommerce.service.IUserService;
+import com.nguyenquyen.ecommerce.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,12 +30,13 @@ public class UserService implements IUserService {
     private final RoleMapper roleMapper;
     private final PasswordEncoder passwordEncoder;
     private final IFileService fileService;
+    private final SecurityUtil securityUtil;
 
 
 
 
     @Override
-    public UserResponse registerByEmail(UserRegisterByEmailRequest request) {
+    public UserResponse createUser(UserCreateRequest request) {
         if(userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
@@ -46,28 +44,6 @@ public class UserService implements IUserService {
                 .orElseThrow(() -> new IllegalArgumentException("Role not found"));
         User newUser = User.builder()
                 .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .name(request.getName())
-                .gender(request.getGender())
-                .address(request.getAddress())
-                .dob(request.getDob())
-                .role(role)
-                .active(true)
-                .build();
-
-
-        User savedUser = userRepository.save(newUser);
-        return userMapper.userToUserResponse(savedUser);
-    }
-
-    @Override
-    public UserResponse registerByPhone(UserRegisterByPhoneRequest request) {
-        if(userRepository.existsByPhone(request.getPhone())) {
-            throw new IllegalArgumentException("Email already exists");
-        }
-        Role role = roleRepository.findByName("USER")
-                .orElseThrow(() -> new IllegalArgumentException("Role not found"));
-        User newUser = User.builder()
                 .phone(request.getPhone())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
@@ -77,6 +53,8 @@ public class UserService implements IUserService {
                 .role(role)
                 .active(true)
                 .build();
+
+
         User savedUser = userRepository.save(newUser);
         return userMapper.userToUserResponse(savedUser);
     }
@@ -89,11 +67,9 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public List<UserResponse> getAllUsers(String keyword, String role, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public Page<UserResponse> getAllUsers(String keyword, String role, Pageable pageable) {
         Page<User> userPage = userRepository.findAll(keyword, role, pageable);
-        return userPage.map(user -> userMapper.userToUserResponse(user))
-                        .getContent();
+        return userPage.map(user -> userMapper.userToUserResponse(user));
     }
 
     @Override
@@ -180,20 +156,12 @@ public class UserService implements IUserService {
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
         if (avatar != null && !avatar.isEmpty()) {
-            String avatarFileName = fileService.uploadAvatar(avatar);
+            String avatarFileName = fileService.uploadFile(avatar);
             existingUser.setAvatar(avatarFileName);
             userRepository.save(existingUser);
         }
 
         return userMapper.userToUserResponse(existingUser);
-    }
-
-    @Override
-    public Resource getAvatarFile(Long id) {
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-
-        return fileService.loadAvatarFile(existingUser.getAvatar());
     }
 
     @Override
@@ -214,5 +182,11 @@ public class UserService implements IUserService {
         // Update password
         existingUser.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(existingUser);
+    }
+
+    @Override
+    public UserResponse getMyProfile() {
+        User currentUser = securityUtil.getCurrentUser();
+        return userMapper.userToUserResponse(currentUser);
     }
 }

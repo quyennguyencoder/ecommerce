@@ -144,6 +144,8 @@ CREATE TABLE orders (
                         coupon_id INT,
                         total DECIMAL(12,2),
                         status VARCHAR(10),
+                        payment_status VARCHAR(50),
+                        payment_method VARCHAR(50),
                         created_at DATETIME,
                         updated_at DATETIME
 );
@@ -151,10 +153,10 @@ CREATE TABLE orders (
 
 CREATE TABLE payments (
                           id INT AUTO_INCREMENT PRIMARY KEY,
-                          order_id INT UNIQUE, -- One-to-One
+                          order_id INT,
                           transaction_id VARCHAR(255),
                           payment_method VARCHAR(50),
-                          payment_status VARCHAR(50),
+                          transaction_status VARCHAR(50),
                           created_at DATETIME,
                           updated_at DATETIME
 );
@@ -271,7 +273,7 @@ ALTER TABLE orders
             ON DELETE SET NULL
             ON UPDATE CASCADE;
 
--- PAYMENTS (1-1)
+-- PAYMENTS (1-N: One Order has many Payments)
 ALTER TABLE payments
     ADD CONSTRAINT fk_payments_orders
         FOREIGN KEY (order_id) REFERENCES orders(id)

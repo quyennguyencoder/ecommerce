@@ -9,6 +9,8 @@ import com.nguyenquyen.ecommerce.repository.ProductRepository;
 import com.nguyenquyen.ecommerce.service.IFileService;
 import com.nguyenquyen.ecommerce.service.IProductImageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.core.io.Resource;
@@ -25,13 +27,6 @@ public class ProductImageService implements IProductImageService {
     private final ProductImageMapper productImageMapper;
     private final IFileService fileService;
 
-    @Override
-    public List<ProductImageResponse> getAllProductImages() {
-        List<ProductImage> productImages = productImageRepository.findAll();
-        return productImages.stream()
-                .map(productImageMapper::productImageToProductImageResponse)
-                .collect(Collectors.toList());
-    }
 
     @Override
     public ProductImageResponse getProductImageById(Long id) {
@@ -59,7 +54,7 @@ public class ProductImageService implements IProductImageService {
         return images.stream()
                 .filter(image -> !image.isEmpty())
                 .map(image -> {
-                    String imageUrl = fileService.uploadProductImage(image);
+                    String imageUrl = fileService.uploadFile(image);
                     ProductImage productImage = ProductImage.builder()
                             .imageUrl(imageUrl)
                             .product(product)
@@ -76,7 +71,7 @@ public class ProductImageService implements IProductImageService {
                 .orElseThrow(() -> new RuntimeException("Hình ảnh sản phẩm không tồn tại với id: " + id));
 
         if (image != null && !image.isEmpty()) {
-            String imageUrl = fileService.uploadProductImage(image);
+            String imageUrl = fileService.uploadFile(image);
             existingProductImage.setImageUrl(imageUrl);
             productImageRepository.save(existingProductImage);
         }
@@ -90,10 +85,5 @@ public class ProductImageService implements IProductImageService {
             throw new RuntimeException("Hình ảnh sản phẩm không tồn tại với id: " + id);
         }
         productImageRepository.deleteById(id);
-    }
-
-    @Override
-    public Resource getProductImage(String imageName) {
-        return fileService.loadProductImage(imageName);
     }
 }

@@ -8,10 +8,13 @@ import com.nguyenquyen.ecommerce.model.Attribute;
 import com.nguyenquyen.ecommerce.repository.AttributeRepository;
 import com.nguyenquyen.ecommerce.service.IAttributeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -22,8 +25,8 @@ public class AttributeService implements IAttributeService {
 
     @Override
     public List<AttributeResponse> getAllAttributes() {
-        List<Attribute> attributes = attributeRepository.findAll();
-        return attributes.stream()
+        return attributeRepository.findAll()
+                .stream()
                 .map(attributeMapper::attributeToAttributeResponse)
                 .collect(Collectors.toList());
     }

@@ -11,10 +11,10 @@ import com.nguyenquyen.ecommerce.repository.ProductRepository;
 import com.nguyenquyen.ecommerce.service.IFeedbackService;
 import com.nguyenquyen.ecommerce.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,16 +26,14 @@ public class FeedbackService implements IFeedbackService {
     private final SecurityUtil securityUtil;
 
     @Override
-    public List<FeedbackResponse> getAllFeedbacks(Long productId, Pageable pageable) {
-        List<Feedback> feedbacks;
+    public Page<FeedbackResponse> getAllFeedbacks(Long productId, Pageable pageable) {
         if (productId != null) {
-            feedbacks = feedbackRepository.findByProductId(productId, pageable).getContent();
+            return feedbackRepository.findByProductId(productId, pageable)
+                    .map(feedbackMapper::feedbackToFeedbackResponse);
         } else {
-            feedbacks = feedbackRepository.findAll(pageable).getContent();
+            return feedbackRepository.findAll(pageable)
+                    .map(feedbackMapper::feedbackToFeedbackResponse);
         }
-        return feedbacks.stream()
-                .map(feedbackMapper::feedbackToFeedbackResponse)
-                .toList();
     }
 
     @Override

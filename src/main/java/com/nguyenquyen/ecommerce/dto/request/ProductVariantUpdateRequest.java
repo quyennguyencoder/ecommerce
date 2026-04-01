@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductVarianUpdatetRequest {
+public class ProductVariantUpdateRequest {
 
     @Size(max = 100, message = "SKU không được vượt quá 100 ký tự")
     private String sku;

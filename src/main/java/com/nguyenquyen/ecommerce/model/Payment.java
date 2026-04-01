@@ -3,6 +3,8 @@ package com.nguyenquyen.ecommerce.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import com.nguyenquyen.ecommerce.enums.PaymentMethod;
+import com.nguyenquyen.ecommerce.enums.TransactionStatus;
 
 @Entity
 @Table(name = "payments")
@@ -21,15 +23,15 @@ public class Payment extends BaseEntity {
     @Column(name = "transaction_id", length = 255)
     private String transactionId;
 
-    @Size(max = 50, message = "Phương thức thanh toán không được vượt quá 50 ký tự")
-    @Column(name = "payment_method", length = 50)
-    private String paymentMethod; // COD, VNPAY, MOMO, BANK_TRANSFER
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", length = 50, nullable = false)
+    private PaymentMethod paymentMethod;
 
-    @Size(max = 50, message = "Trạng thái thanh toán không được vượt quá 50 ký tự")
-    @Column(name = "payment_status", length = 50)
-    private String paymentStatus; // PENDING, PAID, FAILED, REFUNDED
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transaction_status", length = 50, nullable = false)
+    private TransactionStatus transactionStatus;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", unique = true, nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 }

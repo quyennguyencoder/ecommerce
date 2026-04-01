@@ -1,25 +1,22 @@
 package com.nguyenquyen.ecommerce.controller;
 
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
-import com.nguyenquyen.ecommerce.dto.request.UserRegisterByEmailRequest;
+import com.nguyenquyen.ecommerce.dto.PaginationResponse;
+import com.nguyenquyen.ecommerce.dto.request.UserCreateRequest;
 import com.nguyenquyen.ecommerce.dto.request.UserRegisterByPhoneRequest;
 import com.nguyenquyen.ecommerce.dto.request.UserChangePasswordRequest;
 import com.nguyenquyen.ecommerce.dto.request.UserUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.UserResponse;
 import com.nguyenquyen.ecommerce.service.IUserService;
+import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix}/users")
@@ -29,25 +26,13 @@ public class UserController {
     private final IUserService userService;
 
 
-    @PostMapping("/register/email")
-    public ResponseEntity<ApiResponse<UserResponse>> registerByEmail(
-            @Valid @RequestBody UserRegisterByEmailRequest request) {
-        UserResponse userResponse = userService.registerByEmail(request);
+    @PostMapping
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(
+            @Valid @RequestBody UserCreateRequest request) {
+        UserResponse userResponse = userService.createUser(request);
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .status(HttpStatus.CREATED)
                 .message("Đăng ký bằng email thành công")
-                .data(userResponse)
-                .build();
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PostMapping("/register/phone")
-    public ResponseEntity<ApiResponse<UserResponse>> registerByPhone(
-            @Valid @RequestBody UserRegisterByPhoneRequest request) {
-        UserResponse userResponse = userService.registerByPhone(request);
-        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
-                .status(HttpStatus.CREATED)
-                .message("Đăng ký bằng số điện thoại thành công")
                 .data(userResponse)
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -65,17 +50,30 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers(
+    public ResponseEntity<ApiResponse<PaginationResponse<UserResponse>>> getAllUsers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String role,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        List<UserResponse> result = userService.getAllUsers(keyword, role, page, size);
-        ApiResponse<List<UserResponse>> response = ApiResponse.<List<UserResponse>>builder()
+        Pageable pageable = PageRequest.of(page, size);
+        var userPage = userService.getAllUsers(keyword, role, pageable);
+        PaginationResponse<UserResponse> paginationResponse = PaginationUtil.toPaginationResponse(userPage);
+        ApiResponse<PaginationResponse<UserResponse>> response = ApiResponse.<PaginationResponse<UserResponse>>builder()
                 .status(HttpStatus.OK)
                 .message("Lấy danh sách user thành công")
-                .data(result)
+                .data(paginationResponse)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/my-profile")
+    public ResponseEntity<ApiResponse<UserResponse>> getMyProfile() {
+        UserResponse userResponse = userService.getMyProfile();
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+                .status(HttpStatus.OK)
+                .message("Lấy thông tin profile thành công")
+                .data(userResponse)
                 .build();
         return ResponseEntity.ok(response);
     }
@@ -148,20 +146,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}/avatar")
-    public ResponseEntity<Resource> getAvatar(@PathVariable Long id) {
-        try {
-            Resource resource = userService.getAvatarFile(id);
-            String mediaType = detectMediaType(resource);
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(mediaType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                    .body(resource);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 
     @PutMapping("/{id}/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
@@ -174,20 +158,4 @@ public class UserController {
                 .build();
         return ResponseEntity.ok(response);
     }
-
-    private String detectMediaType(Resource resource) {
-        try {
-            if (resource != null && resource.getFilename() != null) {
-                String mediaType = Files.probeContentType(Paths.get(resource.getFilename()));
-                if (mediaType != null) {
-                    return mediaType;
-                }
-            }
-        } catch (Exception e) {
-            // Ignore exception, use default
-        }
-        // return MediaType.APPLICATION_OCTET_STREAM_VALUE;
-        return "image/png"; // mặc định trả về PNG vì avatar mặc định là PNG
-    }
-
 }

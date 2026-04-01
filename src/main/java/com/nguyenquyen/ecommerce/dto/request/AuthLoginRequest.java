@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AuthLoginRequest {
     @NotBlank(message = "Email hoặc số điện thoại không được để trống")
-    private String username; // email hoặc phone
+    private String emailOrPhone;
 
     @NotBlank(message = "Mật khẩu không được để trống")
     private String password;
