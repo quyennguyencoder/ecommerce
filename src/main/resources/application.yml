@@ -28,6 +28,20 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 211113968834-09v4pid19n4eg2lkmok95crj8h2a18kr.apps.googleusercontent.com
+            client-secret: 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
+            redirect-uri: "http://localhost:5173/auth/google/callback"
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+          facebook:
+            client-id: 123456789012345
+            client-secret: abcdef1234567890abcdef1234567890
+            redirect-uri: "http://localhost:5173/auth/facebook/callback"
+            user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture.type(large)
 
 base-url: http://localhost:8080/
 uploads:

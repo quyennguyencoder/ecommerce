@@ -1,11 +1,17 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
 import com.nguyenquyen.ecommerce.dto.request.AuthLoginRequest;
+import com.nguyenquyen.ecommerce.dto.response.AuthUrlResponse;
 import com.nguyenquyen.ecommerce.dto.response.UserResponse;
 import com.nguyenquyen.ecommerce.dto.response.LoginResponse;
 import com.nguyenquyen.ecommerce.dto.response.RefreshTokenResponse;
+import com.nguyenquyen.ecommerce.enums.SocialLoginType;
 import com.nguyenquyen.ecommerce.mapper.UserMapper;
+import com.nguyenquyen.ecommerce.model.Role;
+import com.nguyenquyen.ecommerce.model.SocialAccount;
 import com.nguyenquyen.ecommerce.model.User;
+import com.nguyenquyen.ecommerce.repository.RoleRepository;
+import com.nguyenquyen.ecommerce.repository.SocialAccountRepository;
 import com.nguyenquyen.ecommerce.repository.UserRepository;
 import com.nguyenquyen.ecommerce.service.IAuthService;
 import com.nguyenquyen.ecommerce.util.JwtUtil;
@@ -14,11 +20,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 
 @Service
@@ -30,12 +45,34 @@ public class AuthService implements IAuthService {
     private final UserMapper userMapper;
     private final UserRepository userRepository;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final RestTemplate restTemplate;
+    private final RoleRepository roleRepository;
+    private final SocialAccountRepository socialAccountRepository;
 
     @Value("${jwt.expiration-access-token}")
     private long expirationAccessToken;
 
     @Value("${jwt.expiration-refresh-token}")
     private long expirationRefreshToken;
+
+    // Google OAuth2 Configuration
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+    private String googleClientSecret;
+
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+    private String googleRedirectUri;
+
+
+
+    // Facebook OAuth2 Configuration
+    @Value("${spring.security.oauth2.client.registration.facebook.client-id}")
+    private String facebookClientId;
+
+    @Value("${spring.security.oauth2.client.registration.facebook.redirect-uri}")
+    private String facebookRedirectUri;
 
     @Override
     public LoginResponse login(AuthLoginRequest request) {
@@ -151,6 +188,248 @@ public class AuthService implements IAuthService {
             throw new RuntimeException("Token refresh failed: " + e.getMessage(), e);
         }
     }
+
+    @Override
+    public AuthUrlResponse generateAuthUrl(SocialLoginType socialLoginType) {
+        if (socialLoginType == null) {
+            log.warn("Social login type is null");
+            throw new RuntimeException("Social login type không được để trống");
+        }
+
+        String authUrl = switch (socialLoginType) {
+            case GOOGLE -> generateGoogleAuthUrl();
+            case FACEBOOK -> generateFacebookAuthUrl();
+        };
+
+        log.info("Generated auth URL for {}: {}", socialLoginType, authUrl);
+        return new AuthUrlResponse(authUrl);
+    }
+
+    @Override
+    public LoginResponse handleSocialLoginCallback(String code, SocialLoginType socialLoginType) {
+        try {
+            log.info("Handling {} social login callback", socialLoginType);
+
+            // Step 1: Exchange authorization code for access token
+            Map<String, Object> tokenResponse = authenticateAndFetchProfile(code, socialLoginType);
+
+
+            // Step 2: Get user info from token response
+            String email = (String) tokenResponse.get("email");
+            String name = (String) tokenResponse.get("name");
+            String picture = (String) tokenResponse.get("picture");
+
+            log.info("Fetched user info from {}: email={}", socialLoginType, email);
+
+            // Step 3: Create or update user in database
+            User user = userRepository.findByEmail(email)
+                    .orElseGet(() -> createNewSocialUser(email, name, picture, socialLoginType));
+
+            SocialAccount socialAccount = SocialAccount.builder()
+                    .providerId((String) tokenResponse.get("oauth_id"))
+                    .providerName(socialLoginType.name())
+                    .email((String) tokenResponse.get("email"))
+                    .user(user)
+                    .build();
+            socialAccountRepository.save(socialAccount);
+
+
+            // Update user picture if needed
+            if (picture != null && !picture.isEmpty()) {
+                user.setAvatar(picture);
+                userRepository.save(user);
+            }
+
+            // Step 4: Generate JWT tokens
+            String accessToken = jwtUtil.generateAccessToken(user);
+            String refreshToken = jwtUtil.generateRefreshToken(user);
+
+            // Step 5: Save refresh token to Redis
+            JwtInfo refreshTokenInfo = jwtUtil.parseToken(refreshToken);
+            String refreshTokenKey = "refresh_token:" + user.getId();
+            long refreshTokenExpiresIn = refreshTokenInfo.getExpiresAt().getTime() - System.currentTimeMillis();
+            redisTemplate.opsForValue().set(refreshTokenKey, refreshToken, refreshTokenExpiresIn, TimeUnit.MILLISECONDS);
+            log.info("Refresh token saved to Redis for user: {}", user.getId());
+
+            // Convert user to UserResponse
+            UserResponse userResponse = userMapper.userToUserResponse(user);
+
+            log.info("Social login successful for user: {}", user.getId());
+
+            return LoginResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .tokenType("Bearer")
+                    .expiresIn(expirationAccessToken * 1000)
+                    .user(userResponse)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Social login callback failed for type: {}", socialLoginType, e);
+            throw new RuntimeException("Social login failed: " + e.getMessage(), e);
+        }
+    }
+
+    private Map<String, Object> authenticateAndFetchProfile(String code, SocialLoginType socialLoginType) {
+        return switch (socialLoginType) {
+            case GOOGLE -> authenticateWithGoogle(code);
+            case FACEBOOK -> authenticateWithFacebook(code);
+        };
+    }
+
+
+    private Map<String, Object> authenticateWithGoogle(String code) {
+        try {
+            log.info("Exchanging Google authorization code for access token");
+
+            // Step 1: Prepare request to exchange code for token
+            String tokenUrl = "https://oauth2.googleapis.com/token";
+
+            // FIX 1: BẮT BUỘC dùng MultiValueMap thay vì HashMap thông thường
+            MultiValueMap<String, String> tokenRequest = new LinkedMultiValueMap<>();
+            tokenRequest.add("code", code);
+            tokenRequest.add("client_id", googleClientId);
+            tokenRequest.add("client_secret", googleClientSecret);
+            tokenRequest.add("redirect_uri", googleRedirectUri);
+            // Lưu ý quan trọng: Nếu frontend dùng React popup, biến googleRedirectUri này phải là chữ "postmessage"
+            tokenRequest.add("grant_type", "authorization_code");
+
+            // FIX 2: Set Content-Type là FORM_URLENCODED
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(tokenRequest, headers);
+
+            // Gửi request lấy token
+            Map<String, Object> tokenResponse = restTemplate.postForObject(tokenUrl, entity, Map.class);
+
+            if (tokenResponse == null || !tokenResponse.containsKey("access_token")) {
+                throw new RuntimeException("Failed to get access token from Google");
+            }
+
+            String accessToken = (String) tokenResponse.get("access_token");
+            log.info("Successfully obtained Google access token");
+
+            // Step 3: Fetch user info from Google using access token
+            String userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
+
+            HttpHeaders userInfoHeaders = new HttpHeaders();
+            userInfoHeaders.setBearerAuth(accessToken);
+
+            HttpEntity<Void> userInfoEntity = new HttpEntity<>(userInfoHeaders);
+
+            // FIX 3: Dùng exchange() thay vì getForObject() để Header được gửi đi
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    userInfoUrl,
+                    HttpMethod.GET,
+                    userInfoEntity,
+                    Map.class
+            );
+
+            Map<String, Object> userInfo = response.getBody();
+
+            if (userInfo == null) {
+                throw new RuntimeException("Failed to fetch user info from Google");
+            }
+
+            log.info("Successfully fetched Google user info");
+
+            // Step 4: Extract and normalize user info
+            Map<String, Object> result = new HashMap<>();
+            result.put("email", userInfo.get("email"));
+            result.put("name", userInfo.get("name"));
+            result.put("picture", userInfo.get("picture"));
+            result.put("provider", "GOOGLE");
+            result.put("oauth_id", userInfo.get("sub")); // Google user ID
+
+            return result;
+
+        } catch (Exception e) {
+            log.error("Failed to authenticate with Google", e);
+            throw new RuntimeException("Google authentication failed: " + e.getMessage(), e);
+        }
+    }
+
+
+    private Map<String, Object> authenticateWithFacebook(String code) {
+        try {
+            log.info("Exchanging Facebook authorization code for access token");
+            throw new RuntimeException("Facebook authentication not yet implemented");
+
+        } catch (Exception e) {
+            log.error("Failed to authenticate with Facebook", e);
+            throw new RuntimeException("Facebook authentication failed: " + e.getMessage(), e);
+        }
+    }
+
+
+    private User createNewSocialUser(String email, String name, String picture, SocialLoginType socialLoginType) {
+        log.info("Creating new user from {} social login: {}", socialLoginType, email);
+
+        User user = User.builder()
+                .email(email)
+                .name(name)
+                .avatar(picture)
+                .phone(null) // Phone không có từ OAuth
+                .active(true)
+                .build();
+        Role defaultRole = roleRepository.findByName("USER")
+                .orElseThrow(() -> new RuntimeException("Default role not found"));
+        user.setRole(defaultRole);
+        User savedUser = userRepository.save(user);
+        log.info("New user created from {} social login: id={}", socialLoginType, savedUser.getId());
+
+        return savedUser;
+    }
+
+
+
+    private String generateGoogleAuthUrl() {
+        try {
+            String scope = URLEncoder.encode("openid email profile", StandardCharsets.UTF_8);
+            String redirectUri = URLEncoder.encode(googleRedirectUri, StandardCharsets.UTF_8);
+
+            return String.format(
+                    "https://accounts.google.com/o/oauth2/v2/auth?" +
+                    "client_id=%s&" +
+                    "redirect_uri=%s&" +
+                    "response_type=code&" +
+                    "scope=%s&" +
+                    "access_type=offline&" +
+                    "prompt=consent",
+                    googleClientId,
+                    redirectUri,
+                    scope
+            );
+        } catch (Exception e) {
+            log.error("Failed to generate Google auth URL", e);
+            throw new RuntimeException("Không thể tạo Google authorization URL", e);
+        }
+    }
+
+    private String generateFacebookAuthUrl() {
+        try {
+            String scope = URLEncoder.encode("public_profile,email", StandardCharsets.UTF_8);
+            String redirectUri = URLEncoder.encode(facebookRedirectUri, StandardCharsets.UTF_8);
+
+            return String.format(
+                    "https://www.facebook.com/v18.0/dialog/oauth?" +
+                    "client_id=%s&" +
+                    "redirect_uri=%s&" +
+                    "scope=%s&" +
+                    "response_type=code&" +
+                    "auth_type=rerequest",
+                    facebookClientId,
+                    redirectUri,
+                    scope
+            );
+        } catch (Exception e) {
+            log.error("Failed to generate Facebook auth URL", e);
+            throw new RuntimeException("Không thể tạo Facebook authorization URL", e);
+        }
+    }
+
+
 }
 
 
