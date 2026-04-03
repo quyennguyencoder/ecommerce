@@ -1,5 +1,6 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
+import com.nguyenquyen.ecommerce.dto.PaginationResponse;
 import com.nguyenquyen.ecommerce.dto.request.ProductCreateRequest;
 import com.nguyenquyen.ecommerce.dto.request.ProductUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.ProductResponse;
@@ -12,9 +13,15 @@ import com.nguyenquyen.ecommerce.repository.ProductImageRepository;
 import com.nguyenquyen.ecommerce.repository.ProductRepository;
 import com.nguyenquyen.ecommerce.service.IFileService;
 import com.nguyenquyen.ecommerce.service.IProductService;
+import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,13 +39,23 @@ public class ProductService implements IProductService {
     private final IFileService fileService;
 
     @Override
-    public Page<ProductResponse> getAllProducts(String keyword, Long categoryId, Boolean active, Pageable pageable) {
-        return productRepository.findAllByFilters(keyword, categoryId, active, pageable)
+    @Cacheable(
+            value = "ProductList",
+            key = "{#keyword, #categoryId, #active, #page, #size}",
+            condition = "#page==0" // Chỉ cache trang đầu tiên
+    )
+    public PaginationResponse<ProductResponse> getAllProducts(String keyword, Long categoryId, Boolean active, int page, int size) {
+        System.out.println("Fetching product list...");
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProductResponse> productPage = productRepository.findAllByFilters(keyword, categoryId, active, pageable)
                 .map(productMapper::productToProductResponse);
+        return PaginationUtil.toPaginationResponse(productPage);
     }
 
     @Override
+    @Cacheable(value = "Product", key = "#id")
     public ProductResponse getProductById(Long id) {
+        System.out.println("Fetching product with id: " + id);
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
         return productMapper.productToProductResponse(product);
@@ -67,6 +84,13 @@ public class ProductService implements IProductService {
     }
 
     @Override
+
+//    @Caching(evict = {
+//            @CacheEvict(value = "Product", key = "#id"),
+//            @CacheEvict(value = "ProductList", allEntries = true)
+//    })
+    @CachePut(value = "Product", key = "#id")
+    @CacheEvict(value = "ProductList", allEntries = true)
     public ProductResponse updateProduct(Long id, ProductUpdateRequest request) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
@@ -121,6 +145,11 @@ public class ProductService implements IProductService {
     }
 
     @Override
+    // @CacheEvict(value = "Product", key = "#id")
+    @Caching(evict = {
+            @CacheEvict(value = "Product", key = "#id"),
+            @CacheEvict(value = "ProductList", allEntries = true)
+    })
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
@@ -128,7 +157,8 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public Page<ProductResponse> getHotProducts(Pageable pageable) {
+    public Page<ProductResponse> getHotProducts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         return productRepository.findHotProducts(pageable)
                 .map(productMapper::productToProductResponse);
     }

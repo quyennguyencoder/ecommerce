@@ -1,5 +1,6 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
+import com.nguyenquyen.ecommerce.dto.PaginationResponse;
 import com.nguyenquyen.ecommerce.dto.request.OrderCreateRequest;
 import com.nguyenquyen.ecommerce.dto.response.OrderResponse;
 import com.nguyenquyen.ecommerce.enums.OrderStatus;
@@ -22,8 +23,10 @@ import com.nguyenquyen.ecommerce.repository.PaymentRepository;
 import com.nguyenquyen.ecommerce.repository.UserRepository;
 import com.nguyenquyen.ecommerce.service.IOrderService;
 import com.nguyenquyen.ecommerce.util.SecurityUtil;
+import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,17 +48,21 @@ public class OrderService implements IOrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<OrderResponse> getAllOrders(OrderStatus status, Pageable pageable) {
-        Page<Order> orders = orderRepository.findAllOrdersWithStatus(status, pageable);
-        return orders.map(orderMapper::orderToOrderResponse);
+    public PaginationResponse<OrderResponse> getAllOrders(OrderStatus status, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<OrderResponse> orderPage = orderRepository.findAllOrdersWithStatus(status, pageable)
+                .map(orderMapper::orderToOrderResponse);
+        return PaginationUtil.toPaginationResponse(orderPage);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<OrderResponse> getMyOrders(Pageable pageable) {
+    public PaginationResponse<OrderResponse> getMyOrders(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         Long currentUserId = securityUtil.getCurrentUserId();
-        Page<Order> orders = orderRepository.findAllByUserId(currentUserId, pageable);
-        return orders.map(orderMapper::orderToOrderResponse);
+        Page<OrderResponse> orderPage = orderRepository.findAllByUserId(currentUserId, pageable)
+                .map(orderMapper::orderToOrderResponse);
+        return PaginationUtil.toPaginationResponse(orderPage);
     }
 
     @Override

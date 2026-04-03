@@ -7,11 +7,8 @@ import com.nguyenquyen.ecommerce.dto.request.OrderCreateRequest;
 import com.nguyenquyen.ecommerce.dto.response.OrderResponse;
 import com.nguyenquyen.ecommerce.enums.OrderStatus;
 import com.nguyenquyen.ecommerce.service.IOrderService;
-import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,9 +26,7 @@ public class OrderController {
             @RequestParam(required = false) OrderStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        var orderPage = orderService.getAllOrders(status, pageable);
-        PaginationResponse<OrderResponse> paginationResponse = PaginationUtil.toPaginationResponse(orderPage);
+        var paginationResponse = orderService.getAllOrders(status, page, size);
 
         ApiResponse<PaginationResponse<OrderResponse>> response = ApiResponse.<PaginationResponse<OrderResponse>>builder()
                 .status(HttpStatus.OK)
@@ -59,9 +54,7 @@ public class OrderController {
     public ResponseEntity<ApiResponse<PaginationResponse<OrderResponse>>> getMyOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        var orderPage = orderService.getMyOrders(pageable);
-        PaginationResponse<OrderResponse> paginationResponse = PaginationUtil.toPaginationResponse(orderPage);
+        var paginationResponse = orderService.getMyOrders(page, size);
 
         ApiResponse<PaginationResponse<OrderResponse>> response = ApiResponse.<PaginationResponse<OrderResponse>>builder()
                 .status(HttpStatus.OK)

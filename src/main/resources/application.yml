@@ -16,6 +16,8 @@ spring:
       hibernate:
       dialect: org.hibernate.dialect.MySQL8Dialect
       format_sql: true
+  cache:
+    type: redis
   data:
     redis:
       host: localhost
@@ -36,12 +38,10 @@ spring:
             client-id: 211113968834-09v4pid19n4eg2lkmok95crj8h2a18kr.apps.googleusercontent.com
             client-secret: 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
             redirect-uri: "http://localhost:5173/auth/google/callback"
-            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
           facebook:
             client-id: 2974084842801289
             client-secret: 219f049b6268d9ad4fad0c2670e8a26c
             redirect-uri: "http://localhost:5173/auth/facebook/callback"
-            user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture.type(large)
             scope:
               - email
               - public_profile
