@@ -71,6 +71,9 @@ public class AuthService implements IAuthService {
     @Value("${spring.security.oauth2.client.registration.facebook.client-id}")
     private String facebookClientId;
 
+    @Value("${spring.security.oauth2.client.registration.facebook.client-secret}")
+    private String facebookClientSecret;
+
     @Value("${spring.security.oauth2.client.registration.facebook.redirect-uri}")
     private String facebookRedirectUri;
 
@@ -354,7 +357,72 @@ public class AuthService implements IAuthService {
     private Map<String, Object> authenticateWithFacebook(String code) {
         try {
             log.info("Exchanging Facebook authorization code for access token");
-            throw new RuntimeException("Facebook authentication not yet implemented");
+
+            // Step 1: Exchange authorization code for access token
+            String tokenUrl = "https://graph.facebook.com/v18.0/oauth/access_token";
+
+            MultiValueMap<String, String> tokenRequest = new LinkedMultiValueMap<>();
+            tokenRequest.add("client_id", facebookClientId);
+            tokenRequest.add("client_secret", facebookClientSecret);
+            tokenRequest.add("redirect_uri", facebookRedirectUri);
+            tokenRequest.add("code", code);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(tokenRequest, headers);
+
+            // Request access token
+            Map<String, Object> tokenResponse = restTemplate.postForObject(tokenUrl, entity, Map.class);
+
+            if (tokenResponse == null || !tokenResponse.containsKey("access_token")) {
+                log.error("Failed to get Facebook access token. Response: {}", tokenResponse);
+                throw new RuntimeException("Failed to get access token from Facebook");
+            }
+
+            String accessToken = (String) tokenResponse.get("access_token");
+            log.info("Successfully obtained Facebook access token");
+
+            // Step 2: Fetch user info from Facebook using access token
+            String userInfoUrl = "https://graph.facebook.com/v18.0/me?fields=id,email,name,picture&access_token=" + accessToken;
+
+            HttpHeaders userInfoHeaders = new HttpHeaders();
+            HttpEntity<Void> userInfoEntity = new HttpEntity<>(userInfoHeaders);
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    userInfoUrl,
+                    HttpMethod.GET,
+                    userInfoEntity,
+                    Map.class
+            );
+
+            Map<String, Object> userInfo = response.getBody();
+
+            if (userInfo == null) {
+                log.error("Failed to fetch user info from Facebook");
+                throw new RuntimeException("Failed to fetch user info from Facebook");
+            }
+
+            log.info("Successfully fetched Facebook user info");
+
+            // Step 3: Extract and normalize user info
+            Map<String, Object> result = new HashMap<>();
+            result.put("email", userInfo.get("email"));
+            result.put("name", userInfo.get("name"));
+
+            // Extract picture URL from nested object
+            if (userInfo.containsKey("picture") && userInfo.get("picture") instanceof Map) {
+                Map<String, Object> pictureObj = (Map<String, Object>) userInfo.get("picture");
+                if (pictureObj.containsKey("data") && pictureObj.get("data") instanceof Map) {
+                    Map<String, Object> pictureData = (Map<String, Object>) pictureObj.get("data");
+                    result.put("picture", pictureData.get("url"));
+                }
+            }
+
+            result.put("provider", "FACEBOOK");
+            result.put("oauth_id", userInfo.get("id")); // Facebook user ID
+
+            return result;
 
         } catch (Exception e) {
             log.error("Failed to authenticate with Facebook", e);

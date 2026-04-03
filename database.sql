@@ -15,7 +15,7 @@ CREATE TABLE users (
                        name VARCHAR(255),
                        dob DATE,
                        address VARCHAR(400),
-                       avatar VARCHAR(255),
+                       avatar VARCHAR(600),
                        gender VARCHAR(10),
                        role_id INT,
                        active BOOLEAN DEFAULT 1,
