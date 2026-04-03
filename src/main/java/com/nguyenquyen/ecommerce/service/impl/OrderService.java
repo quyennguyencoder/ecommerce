@@ -101,17 +101,6 @@ public class OrderService implements IOrderService {
         // Lưu order trước
         Order savedOrder = orderRepository.save(order);
 
-        // Tạo Payment record chỉ khi phương thức thanh toán không phải COD
-        if (request.getPaymentMethod() != PaymentMethod.COD) {
-            Payment payment = Payment.builder()
-                    .paymentMethod(request.getPaymentMethod())
-                    .transactionStatus(TransactionStatus.PENDING)
-                    .order(savedOrder)
-                    .build();
-
-            Payment savedPayment = paymentRepository.save(payment);
-            savedOrder.getPayments().add(savedPayment);
-        }
 
         // Xử lý cartItemIds để tạo OrderDetail
         if (request.getCartItemIds() != null && !request.getCartItemIds().isEmpty()) {
@@ -136,15 +125,7 @@ public class OrderService implements IOrderService {
         }
 
         // Map Order sang OrderResponse
-        OrderResponse orderResponse = orderMapper.orderToOrderResponse(savedOrder);
-
-        // Gán paymentUrl nếu payment method là VNPAY
-        if (request.getPaymentMethod() == PaymentMethod.VNPAY) {
-            String paymentUrl = generateVNPayPaymentUrl(savedOrder);
-            orderResponse.setPaymentUrl(paymentUrl);
-        }
-
-        return orderResponse;
+        return orderMapper.orderToOrderResponse(savedOrder);
     }
 
 

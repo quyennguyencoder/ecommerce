@@ -40,12 +40,12 @@ jwt:
   secret-key: +H0WZ2cfLZ/6E8OIG/OI9JB9j2ZUpMKVSeWEc0dRCRsT+NqVdBZbWyrMLzsgg1LjPdcb62eiRZYm0AC5j59Ie5PLCYjwIFqBwzuCPRVvnXI=
 
 vnpay:
-  tmn-code: K2WES1JG
-  hash-secret: B26TWEYQS9EZ433DEIKT7E3XOJR3GSEW
-  payment-url: https://sandbox.vnpayment.vn/paygate/pay.html
-  return-url: http://localhost:8080/api/v1/payments/vnpay/return
+  tmn-code: EQCBV20H
+  hash-secret: IY4RSOU8X5QB5CGMSOB48LBUMPYO5JGG
+  payment-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  return-url: http://localhost:5173/payment-result
   ipn-url: http://localhost:8080/api/v1/payments/vnpay/ipn
-  api-url: https://sandbox.vnpayment.vn/merchant_webapi/merchant.html
+  api-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
 
 
 

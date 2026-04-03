@@ -34,7 +34,6 @@ public class OrderResponse {
     private Long userId;
     private PaymentStatus paymentStatus;
     private PaymentMethod paymentMethod;
-    private String paymentUrl;
     private Set<OrderDetailResponse> orderDetails;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
