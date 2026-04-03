@@ -10,8 +10,6 @@ import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -35,9 +33,7 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        Pageable pageable = PageRequest.of(page, size);
-        var productPage = productService.getAllProducts(keyword, categoryId, active, pageable);
-        PaginationResponse<ProductResponse> paginationResponse = PaginationUtil.toPaginationResponse(productPage);
+        var paginationResponse = productService.getAllProducts(keyword, categoryId, active, page, size);
 
         ApiResponse<PaginationResponse<ProductResponse>> response = ApiResponse.<PaginationResponse<ProductResponse>>builder()
                 .status(HttpStatus.OK)
@@ -126,8 +122,7 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        Pageable pageable = PageRequest.of(page, size);
-        var productPage = productService.getHotProducts(pageable);
+        var productPage = productService.getHotProducts(page, size);
         PaginationResponse<ProductResponse> paginationResponse = PaginationUtil.toPaginationResponse(productPage);
 
         ApiResponse<PaginationResponse<ProductResponse>> response = ApiResponse.<PaginationResponse<ProductResponse>>builder()

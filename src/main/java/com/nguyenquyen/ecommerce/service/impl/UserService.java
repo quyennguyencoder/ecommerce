@@ -1,5 +1,6 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
+import com.nguyenquyen.ecommerce.dto.PaginationResponse;
 import com.nguyenquyen.ecommerce.dto.request.UserCreateRequest;
 import com.nguyenquyen.ecommerce.dto.request.UserRegisterByPhoneRequest;
 import com.nguyenquyen.ecommerce.dto.request.UserChangePasswordRequest;
@@ -14,8 +15,10 @@ import com.nguyenquyen.ecommerce.repository.UserRepository;
 import com.nguyenquyen.ecommerce.service.IFileService;
 import com.nguyenquyen.ecommerce.service.IUserService;
 import com.nguyenquyen.ecommerce.util.SecurityUtil;
+import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -67,9 +70,11 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public Page<UserResponse> getAllUsers(String keyword, String role, Pageable pageable) {
-        Page<User> userPage = userRepository.findAll(keyword, role, pageable);
-        return userPage.map(user -> userMapper.userToUserResponse(user));
+    public PaginationResponse<UserResponse> getAllUsers(String keyword, String role, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<UserResponse> userPage = userRepository.findAll(keyword, role, pageable)
+                .map(user -> userMapper.userToUserResponse(user));
+        return PaginationUtil.toPaginationResponse(userPage);
     }
 
     @Override

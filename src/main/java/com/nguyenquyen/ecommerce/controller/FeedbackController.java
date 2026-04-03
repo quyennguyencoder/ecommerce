@@ -5,11 +5,8 @@ import com.nguyenquyen.ecommerce.dto.PaginationResponse;
 import com.nguyenquyen.ecommerce.dto.request.FeedbackCreateRequest;
 import com.nguyenquyen.ecommerce.dto.response.FeedbackResponse;
 import com.nguyenquyen.ecommerce.service.IFeedbackService;
-import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,9 +25,7 @@ public class FeedbackController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        Pageable pageable = PageRequest.of(page, size);
-        var feedbackPage = feedbackService.getAllFeedbacks(productId, pageable);
-        PaginationResponse<FeedbackResponse> paginationResponse = PaginationUtil.toPaginationResponse(feedbackPage);
+        var paginationResponse = feedbackService.getAllFeedbacks(productId, page, size);
 
         ApiResponse<PaginationResponse<FeedbackResponse>> response = ApiResponse.<PaginationResponse<FeedbackResponse>>builder()
                 .status(HttpStatus.OK)

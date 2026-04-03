@@ -1,5 +1,6 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
+import com.nguyenquyen.ecommerce.dto.PaginationResponse;
 import com.nguyenquyen.ecommerce.dto.request.FeedbackCreateRequest;
 import com.nguyenquyen.ecommerce.dto.response.FeedbackResponse;
 import com.nguyenquyen.ecommerce.mapper.FeedbackMapper;
@@ -10,8 +11,10 @@ import com.nguyenquyen.ecommerce.repository.FeedbackRepository;
 import com.nguyenquyen.ecommerce.repository.ProductRepository;
 import com.nguyenquyen.ecommerce.service.IFeedbackService;
 import com.nguyenquyen.ecommerce.util.SecurityUtil;
+import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -26,13 +29,16 @@ public class FeedbackService implements IFeedbackService {
     private final SecurityUtil securityUtil;
 
     @Override
-    public Page<FeedbackResponse> getAllFeedbacks(Long productId, Pageable pageable) {
+    public PaginationResponse<FeedbackResponse> getAllFeedbacks(Long productId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         if (productId != null) {
-            return feedbackRepository.findByProductId(productId, pageable)
+            Page<FeedbackResponse> feedbackPage = feedbackRepository.findByProductId(productId, pageable)
                     .map(feedbackMapper::feedbackToFeedbackResponse);
+            return PaginationUtil.toPaginationResponse(feedbackPage);
         } else {
-            return feedbackRepository.findAll(pageable)
+            Page<FeedbackResponse> feedbackPage = feedbackRepository.findAll(pageable)
                     .map(feedbackMapper::feedbackToFeedbackResponse);
+            return PaginationUtil.toPaginationResponse(feedbackPage);
         }
     }
 

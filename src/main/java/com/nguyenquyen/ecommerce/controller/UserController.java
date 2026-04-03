@@ -8,11 +8,8 @@ import com.nguyenquyen.ecommerce.dto.request.UserChangePasswordRequest;
 import com.nguyenquyen.ecommerce.dto.request.UserUpdateRequest;
 import com.nguyenquyen.ecommerce.dto.response.UserResponse;
 import com.nguyenquyen.ecommerce.service.IUserService;
-import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -56,9 +53,7 @@ public class UserController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);
-        var userPage = userService.getAllUsers(keyword, role, pageable);
-        PaginationResponse<UserResponse> paginationResponse = PaginationUtil.toPaginationResponse(userPage);
+        var paginationResponse = userService.getAllUsers(keyword, role, page, size);
         ApiResponse<PaginationResponse<UserResponse>> response = ApiResponse.<PaginationResponse<UserResponse>>builder()
                 .status(HttpStatus.OK)
                 .message("Lấy danh sách user thành công")
