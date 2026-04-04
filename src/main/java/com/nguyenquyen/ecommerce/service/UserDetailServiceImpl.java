@@ -1,14 +1,11 @@
-package com.nguyenquyen.ecommerce.config;
+package com.nguyenquyen.ecommerce.service;
 
-import com.nguyenquyen.ecommerce.model.User;
 import com.nguyenquyen.ecommerce.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

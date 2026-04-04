@@ -1,5 +1,6 @@
-package com.nguyenquyen.ecommerce.config;
+package com.nguyenquyen.ecommerce.util;
 
+import com.nguyenquyen.ecommerce.config.VNPayConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

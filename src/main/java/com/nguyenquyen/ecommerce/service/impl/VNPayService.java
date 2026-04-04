@@ -1,7 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
 import com.nguyenquyen.ecommerce.config.VNPayConfig;
-import com.nguyenquyen.ecommerce.config.VNPayUtil;
+import com.nguyenquyen.ecommerce.util.VNPayUtil;
 import com.nguyenquyen.ecommerce.dto.request.PaymentUrlCreateRequest;
 import com.nguyenquyen.ecommerce.dto.response.PaymentUrlCreateResponse;
 import com.nguyenquyen.ecommerce.dto.response.TransactionResponse;

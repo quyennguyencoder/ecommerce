@@ -1,5 +1,7 @@
 package com.nguyenquyen.ecommerce.service.impl;
 
+import com.nguyenquyen.ecommerce.config.RabbitMQConfig;
+import com.nguyenquyen.ecommerce.dto.OrderEmailEvent;
 import com.nguyenquyen.ecommerce.dto.PaginationResponse;
 import com.nguyenquyen.ecommerce.dto.request.OrderCreateRequest;
 import com.nguyenquyen.ecommerce.dto.response.OrderResponse;
@@ -25,6 +27,7 @@ import com.nguyenquyen.ecommerce.service.IOrderService;
 import com.nguyenquyen.ecommerce.util.SecurityUtil;
 import com.nguyenquyen.ecommerce.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +48,7 @@ public class OrderService implements IOrderService {
     private final PaymentRepository paymentRepository;
     private final OrderMapper orderMapper;
     private final SecurityUtil securityUtil;
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     @Transactional(readOnly = true)
@@ -131,6 +135,19 @@ public class OrderService implements IOrderService {
             savedOrder = orderRepository.save(savedOrder);
         }
 
+        OrderEmailEvent event = OrderEmailEvent.builder()
+                .orderId(savedOrder.getId())
+                .customerEmail(currentUser.getEmail())
+                .customerName(currentUser.getName())
+                .totalAmount(savedOrder.getTotal())
+                .build();
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_ORDER,
+                RabbitMQConfig.ROUTING_KEY_EMAIL,
+                event
+        );
+
+        System.out.println("Đã đặt hàng thành công và gửi event lên RabbitMQ!");
         // Map Order sang OrderResponse
         return orderMapper.orderToOrderResponse(savedOrder);
     }
@@ -156,10 +173,4 @@ public class OrderService implements IOrderService {
         orderRepository.delete(order);
     }
 
-
-    private String generateVNPayPaymentUrl(Order order) {
-        // Placeholder cho URL VNPay
-        // Trong thực tế, bạn sẽ cần gọi VNPay API để tạo URL thanh toán thực
-        return "https://vnpay.vn/pay?orderCode=" + order.getId() + "&amount=" + order.getTotal();
-    }
 }

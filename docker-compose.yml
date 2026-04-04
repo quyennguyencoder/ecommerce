@@ -1,57 +1,41 @@
-# Docker Compose file for Ecommerce Application
+
+# Docker Compose Configuration for eCommerce Application
 #
-# AVAILABLE COMMANDS:
-# ==================
+# Câu lệnh để chạy từng container:
+# ================================
 #
-# 1. Start all containers:
+# 1. Chạy tất cả các container:
 #    docker-compose up -d
 #
-# 2. Start specific container:
+# 2. Chạy riêng MySQL:
 #    docker-compose up -d mysql
+#
+# 3. Chạy riêng Redis:
 #    docker-compose up -d redis
 #
-# 3. View logs:
-#    docker-compose logs -f                    # All services
-#    docker-compose logs -f mysql              # MySQL only
-#    docker-compose logs -f redis              # Redis only
+# 4. Chạy riêng RabbitMQ:
+#    docker-compose up -d rabbitmq
 #
-# 4. Stop all containers:
+# 5. Dừng tất cả các container:
 #    docker-compose down
 #
-# 5. Stop specific container:
+# 6. Dừng riêng một container (ví dụ MySQL):
 #    docker-compose stop mysql
-#    docker-compose stop redis
 #
-# 6. Start stopped containers:
-#    docker-compose start mysql
-#    docker-compose start redis
+# 7. Xem log của container:
+#    docker-compose logs -f [service_name]
+#    Ví dụ: docker-compose logs -f mysql
 #
-# 7. Restart containers:
-#    docker-compose restart                    # All services
-#    docker-compose restart mysql              # MySQL only
-#    docker-compose restart redis              # Redis only
-#
-# 8. Remove all containers and volumes:
-#    docker-compose down -v
-#
-# 9. Check container status:
+# 8. Kiểm tra trạng thái các container:
 #    docker-compose ps
 #
-# 10. Execute command in container:
-#     docker exec ecommerce-mysql mysql -u root -p -e "SHOW DATABASES;"
-#     docker exec ecommerce-redis redis-cli ping
+# 9. Xóa container và volume:
+#    docker-compose down -v
 #
-# 11. Access MySQL shell:
-#     docker exec -it ecommerce-mysql mysql -u root -proot
-#
-# 12. Access Redis CLI:
-#     docker exec -it ecommerce-redis redis-cli
-#
-# 13. View container resource usage:
-#     docker stats
-#
-# 14. Remove all unused containers and images:
-#     docker system prune
+# 10. Truy cập RabbitMQ Management UI:
+#     URL: http://localhost:15672
+#     Username: guest
+#     Password: guest
 #
 
 version: '3.8'
@@ -92,11 +76,32 @@ services:
       timeout: 20s
       retries: 10
 
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: ecommerce-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"      # AMQP port
+      - "15672:15672"    # Management UI port
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      timeout: 30s
+      retries: 10
+
+
 
 
 volumes:
   mysql_data:
   redis_data:
+  rabbitmq_data:
 
 networks:
   ecommerce-network:
