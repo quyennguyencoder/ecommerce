@@ -54,7 +54,16 @@ jobs:
           username: ${{ secrets.AZURE_USERNAME }}
           password: ${{ secrets.AZURE_PASSWORD }}
           script: |
-            cd /home/${{ secrets.AZURE_USERNAME }}/ecommerce-project
+            cd /home/nguyenquyen/ecommerce-project
+            # 1. Kéo image mới về
             docker compose pull app
-            docker compose up -d --no-deps app
+
+            # 2. Dừng và xóa container cũ trước khi lên bản mới (giúp tránh lỗi Conflict Name)
+            docker compose stop app
+            docker compose rm -f app
+
+            # 3. Khởi chạy bản mới với các flag đảm bảo an toàn
+            docker compose up -d --force-recreate --remove-orphans app
+
+            # 4. Dọn dẹp các image cũ không còn dùng đến để tiết kiệm dung lượng (VM 1GB RAM cần cái này)
             docker image prune -f
