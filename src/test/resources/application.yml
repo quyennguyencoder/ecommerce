@@ -85,3 +85,6 @@ vnpay:
   return-url: http://localhost:8080/return
   ipn-url: http://localhost:8080/ipn
   api-url: http://localhost:8080/api
+app:
+  cors:
+    allowed-origins: http://localhost:5173
