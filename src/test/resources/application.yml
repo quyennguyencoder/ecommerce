@@ -1,0 +1,87 @@
+server:
+  port: 8080
+
+api:
+  prefix: /api/v1
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+
+  flyway:
+    enabled: false
+
+  h2:
+    console:
+      enabled: true
+
+  cache:
+    type: simple
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: test@gmail.com
+    password: test-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-google-client-id
+            client-secret: test-google-client-secret
+            redirect-uri: http://localhost:8080/login/oauth2/code/google
+          facebook:
+            client-id: test-facebook-client-id
+            client-secret: test-facebook-client-secret
+            redirect-uri: http://localhost:8080/login/oauth2/code/facebook
+            scope:
+              - email
+              - public_profile
+
+base-url: http://localhost:8080/
+uploads:
+  dir: uploads/
+jwt:
+  expiration-access-token: 2592000
+  expiration-refresh-token: 5184000
+  secret-key: test-secret-key-for-testing-purposes-only-32-characters
+
+vnpay:
+  tmn-code: test-tmn-code
+  hash-secret: test-hash-secret
+  payment-url: http://localhost:8080/payment
+  return-url: http://localhost:8080/return
+  ipn-url: http://localhost:8080/ipn
+  api-url: http://localhost:8080/api

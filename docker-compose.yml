@@ -42,52 +42,59 @@ version: '3.8'
 services:
   # Spring Boot API
   app:
-    build: .
-    container_name: ecommerce-api
+    # [THAY ĐỔI QUAN TRỌNG NHẤT]: Xóa 'build: .', thay bằng 'image'
+    # Lưu ý: Thay "your_dockerhub_username" bằng tên đăng nhập DockerHub thật của bạn
+    image: quyennguyen8805/ecommerce-backend:latest
+    container_name: ecommerce-backend
     ports:
       - "8080:8080"
     env_file:
       - .env
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/ecommerce?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      # DB_URL: jdbc:mysql://mysql:3306/ecommerce?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       REDIS_HOST: redis
       RABBITMQ_HOST: rabbitmq
       UPLOAD_DIR: /app/uploads
     volumes:
       - uploads_data:/app/uploads
     depends_on:
-      - mysql
+      # - mysql
       - redis
       - rabbitmq
     networks:
       - ecommerce-network
+    # Giới hạn RAM tối đa cho Spring Boot
+    deploy:
+      resources:
+        limits:
+          memory: 400M
 
   # MySQL Database
-  mysql:
-    image: mysql:8.0
-    container_name: ecommerce-mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: ecommerce
-      MYSQL_PASSWORD: root
-    ports:
-      - "3307:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - ecommerce-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
+  #  mysql:
+  #    image: mysql:8.0
+  #    container_name: ecommerce-mysql
+  #    environment:
+  #      MYSQL_ROOT_PASSWORD: root
+  #      MYSQL_DATABASE: ecommerce
+  #      MYSQL_PASSWORD: root
+  #    ports:
+  #      - "3307:3306"
+  #    volumes:
+  #      - mysql_data:/var/lib/mysql
+  #    networks:
+  #      - ecommerce-network
+  #    healthcheck:
+  #      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+  #      timeout: 20s
+  #      retries: 10
 
   # Redis Cache
   redis:
-    image: redis:7
+    image: redis:7-alpine
     container_name: ecommerce-redis
-    ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
+    # ports:
+    #  - "6379:6379"  # ĐÓNG CỔNG NÀY: Chỉ để nội bộ dùng
+    command: redis-server --appendonly yes --maxmemory 50mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     networks:
@@ -96,16 +103,21 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       timeout: 20s
       retries: 10
+    # Giới hạn RAM phía Docker
+    deploy:
+      resources:
+        limits:
+          memory: 70M
 
   # RabbitMQ Message Broker
   rabbitmq:
-    image: rabbitmq:3.13-management
+    image: rabbitmq:3.13-management-alpine
     container_name: ecommerce-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     ports:
-      - "5672:5672"      # AMQP port
+      # - "5672:5672"      # AMQP port (ĐÓNG CỔNG NÀY)
       - "15672:15672"    # Management UI port
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
@@ -115,10 +127,14 @@ services:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       timeout: 30s
       retries: 10
-
+    # Giới hạn RAM cho RabbitMQ
+    deploy:
+      resources:
+        limits:
+          memory: 250M
 
 volumes:
-  mysql_data:
+  # mysql_data:
   redis_data:
   rabbitmq_data:
   uploads_data:

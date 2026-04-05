@@ -141,6 +141,7 @@ public class OrderService implements IOrderService {
                 .customerName(currentUser.getName())
                 .totalAmount(savedOrder.getTotal())
                 .build();
+
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EXCHANGE_ORDER,
                 RabbitMQConfig.ROUTING_KEY_EMAIL,
