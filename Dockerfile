@@ -7,14 +7,17 @@ COPY pom.xml .
 RUN mvn -B -DskipTests dependency:go-offline
 
 COPY src/ src/
-RUN mvn -B -DskipTests package
+RUN mvn -B -DskipTests clean package
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-ENV JAVA_OPTS=""
+
+# Tối ưu JVM cho máy chủ 1GB RAM
+ENV JAVA_OPTS="-Xms128m -Xmx300m -XX:+UseSerialGC"
 
 COPY --from=builder /app/target/*.jar /app/app.jar
 RUN mkdir -p /app/uploads
 
 EXPOSE 8080
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+# Thêm 'exec' để đảm bảo Java nhận được lệnh tắt an toàn từ Docker
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
