@@ -63,9 +63,9 @@ spring:
               - email
               - public_profile
 
-base-url: ${BASE_URL:http://localhost:8080/}
+base-url: ${BASE_URL:http://localhost:8080}
 uploads:
-  dir: ${UPLOAD_DIR:uploads/}
+  dir: ${UPLOAD_DIR:uploads}
 jwt:
   expiration-access-token: ${JWT_EXPIRATION_ACCESS_TOKEN:2592000}
   expiration-refresh-token: ${JWT_EXPIRATION_REFRESH_TOKEN:5184000}
@@ -80,6 +80,9 @@ vnpay:
   api-url: ${VNPAY_API_URL}
 
 
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
 
 
 

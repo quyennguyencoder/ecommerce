@@ -21,7 +21,7 @@ public class FileService implements IFileService {
     @Value("${file.upload-dir:uploads}")
     private String uploadDir;
 
-    @Value("${base-url:http://localhost:8080/}")
+    @Value("${base-url:http://localhost:8080}")
     private String baseUrl;
 
     @Override
@@ -51,7 +51,7 @@ public class FileService implements IFileService {
             Path filePath = uploadDirPath.resolve(uniqueFileName);
             Files.write(filePath, file.getBytes());
 
-            return baseUrl + "api/v1/files/" + uniqueFileName;
+            return baseUrl + "/" + "api/v1/files/" + uniqueFileName;
         } catch (IOException e) {
             throw new RuntimeException("Failed to upload file: " + e.getMessage(), e);
         }
