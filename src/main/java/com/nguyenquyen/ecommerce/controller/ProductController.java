@@ -25,6 +25,21 @@ public class ProductController {
 
     private final IProductService productService;
 
+    @PostMapping
+    public ResponseEntity<ApiResponse<ProductResponse>> createProduct(
+            @Valid @RequestBody ProductCreateRequest request) {
+
+        ProductResponse product = productService.createProduct(request);
+
+        ApiResponse<ProductResponse> response = ApiResponse.<ProductResponse>builder()
+                .status(HttpStatus.CREATED)
+                .message("Tạo sản phẩm thành công")
+                .data(product)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<PaginationResponse<ProductResponse>>> getAllProducts(
             @RequestParam(required = false) String keyword,
@@ -55,21 +70,6 @@ public class ProductController {
                 .build();
 
         return ResponseEntity.ok(response);
-    }
-
-    @PostMapping
-    public ResponseEntity<ApiResponse<ProductResponse>> createProduct(
-            @Valid @RequestBody ProductCreateRequest request) {
-
-        ProductResponse product = productService.createProduct(request);
-
-        ApiResponse<ProductResponse> response = ApiResponse.<ProductResponse>builder()
-                .status(HttpStatus.CREATED)
-                .message("Tạo sản phẩm thành công")
-                .data(product)
-                .build();
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
