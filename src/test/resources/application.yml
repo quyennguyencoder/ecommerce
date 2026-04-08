@@ -82,8 +82,8 @@ vnpay:
   tmn-code: test-tmn-code
   hash-secret: test-hash-secret
   payment-url: http://localhost:8080/payment
-  return-url: http://localhost:8080/return
-  ipn-url: http://localhost:8080/ipn
+  client-redirect-uri: http://localhost:5173
+  server-webhook-uri: http://localhost:8080
   api-url: http://localhost:8080/api
 app:
   cors:

@@ -21,6 +21,21 @@ public class CouponController {
 
     private final ICouponService couponService;
 
+    @PostMapping
+    public ResponseEntity<ApiResponse<CouponResponse>> createCoupon(
+            @Valid @RequestBody CouponCreateRequest request) {
+
+        CouponResponse coupon = couponService.createCoupon(request);
+
+        ApiResponse<CouponResponse> response = ApiResponse.<CouponResponse>builder()
+                .status(HttpStatus.CREATED)
+                .message("Tạo coupon thành công")
+                .data(coupon)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<CouponResponse>>> getAllCoupons() {
         List<CouponResponse> coupons = couponService.getAllCoupons();
@@ -45,21 +60,6 @@ public class CouponController {
                 .build();
 
         return ResponseEntity.ok(response);
-    }
-
-    @PostMapping
-    public ResponseEntity<ApiResponse<CouponResponse>> createCoupon(
-            @Valid @RequestBody CouponCreateRequest request) {
-
-        CouponResponse coupon = couponService.createCoupon(request);
-
-        ApiResponse<CouponResponse> response = ApiResponse.<CouponResponse>builder()
-                .status(HttpStatus.CREATED)
-                .message("Tạo coupon thành công")
-                .data(coupon)
-                .build();
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
