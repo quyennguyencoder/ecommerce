@@ -4,6 +4,7 @@ package com.nguyenquyen.ecommerce.controller;
 import com.nguyenquyen.ecommerce.dto.ApiResponse;
 import com.nguyenquyen.ecommerce.dto.PaginationResponse;
 import com.nguyenquyen.ecommerce.dto.request.OrderCreateRequest;
+import com.nguyenquyen.ecommerce.dto.response.OrderCalculationResponse;
 import com.nguyenquyen.ecommerce.dto.response.OrderResponse;
 import com.nguyenquyen.ecommerce.enums.OrderStatus;
 import com.nguyenquyen.ecommerce.service.IOrderService;
@@ -20,6 +21,21 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final IOrderService orderService;
+
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
+            @Valid @RequestBody OrderCreateRequest request) {
+        OrderResponse order = orderService.createOrder(request);
+
+        ApiResponse<OrderResponse> response = ApiResponse.<OrderResponse>builder()
+                .status(HttpStatus.CREATED)
+                .message("Tạo đơn hàng thành công")
+                .data(order)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<PaginationResponse<OrderResponse>>> getAllOrders(
@@ -65,21 +81,6 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
-            @Valid @RequestBody OrderCreateRequest request) {
-        OrderResponse order = orderService.createOrder(request);
-
-        ApiResponse<OrderResponse> response = ApiResponse.<OrderResponse>builder()
-                .status(HttpStatus.CREATED)
-                .message("Tạo đơn hàng thành công")
-                .data(order)
-                .build();
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-
     @PutMapping("/{id}/status")
     public ResponseEntity<ApiResponse<OrderResponse>> updateOrderStatus(
             @PathVariable Long id,
@@ -106,6 +107,20 @@ public class OrderController {
 
         return ResponseEntity.ok(response);
     }
-}
 
+    @PostMapping("/calculate-total")
+    public ResponseEntity<ApiResponse<OrderCalculationResponse>> calculateTotalPrice(
+            @Valid @RequestBody OrderCreateRequest request
+    ){
+        OrderCalculationResponse calculation = orderService.calculateTotalPrice(request);
+
+        ApiResponse<OrderCalculationResponse> response = ApiResponse.<OrderCalculationResponse>builder()
+                .status(HttpStatus.OK)
+                .message("Tính tổng tiền đơn hàng thành công")
+                .data(calculation)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+}
 

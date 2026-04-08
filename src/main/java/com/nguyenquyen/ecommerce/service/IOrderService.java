@@ -2,6 +2,7 @@ package com.nguyenquyen.ecommerce.service;
 
 import com.nguyenquyen.ecommerce.dto.PaginationResponse;
 import com.nguyenquyen.ecommerce.dto.request.OrderCreateRequest;
+import com.nguyenquyen.ecommerce.dto.response.OrderCalculationResponse;
 import com.nguyenquyen.ecommerce.dto.response.OrderResponse;
 import com.nguyenquyen.ecommerce.enums.OrderStatus;
 
@@ -12,4 +13,5 @@ public interface IOrderService {
     OrderResponse createOrder(OrderCreateRequest request);
     OrderResponse updateOrderStatus(Long id, OrderStatus status);
     void deleteOrder(Long id);
+    OrderCalculationResponse calculateTotalPrice(OrderCreateRequest request);
 }

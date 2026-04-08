@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -72,6 +73,7 @@ public class ProductVariantController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<ProductVariantResponse>> createProductVariant(
             @Valid @RequestBody ProductVariantCreateRequest request) {
 
@@ -87,6 +89,7 @@ public class ProductVariantController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<ProductVariantResponse>> updateProductVariant(
             @PathVariable Long id,
             @Valid @RequestBody ProductVariantUpdateRequest request) {
@@ -103,6 +106,7 @@ public class ProductVariantController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<Void>> deleteProductVariant(@PathVariable Long id) {
         productVariantService.deleteProductVariant(id);
 
@@ -115,6 +119,7 @@ public class ProductVariantController {
     }
 
     @PutMapping("/{id}/image")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<ApiResponse<ProductVariantResponse>> uploadProductVariantImage(
             @PathVariable Long id,
             @RequestParam("image") MultipartFile image) {
@@ -130,4 +135,3 @@ public class ProductVariantController {
         return ResponseEntity.ok(response);
     }
 }
-
