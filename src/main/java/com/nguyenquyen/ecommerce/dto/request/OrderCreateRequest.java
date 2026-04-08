@@ -11,7 +11,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -42,13 +41,6 @@ public class OrderCreateRequest {
     private String note;
 
     private ShippingMethod shippingMethod;
-
-    @DecimalMin(value = "0.00", message = "Phí vận chuyển phải lớn hơn hoặc bằng 0")
-    private BigDecimal shippingFee;
-
-    @NotNull(message = "Tổng tiền không được để trống")
-    @DecimalMin(value = "0.00", message = "Tổng tiền phải lớn hơn hoặc bằng 0")
-    private BigDecimal total;
 
     private String couponCode;
 

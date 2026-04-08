@@ -18,10 +18,10 @@ public class VNPayConfig {
     @Value("${vnpay.payment-url}")
     private String paymentUrl;
 
-    @Value("${vnpay.return-url}")
+    @Value("${vnpay.client-redirect-uri}")
     private String returnUrl;
 
-    @Value("${vnpay.ipn-url}")
+    @Value("${vnpay.server-webhook-uri}")
     private String ipnUrl;
 
     @Value("${vnpay.api-url}")

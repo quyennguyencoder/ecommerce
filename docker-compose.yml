@@ -1,41 +1,3 @@
-# Docker Compose Configuration for eCommerce Application
-#
-# Câu lệnh để chạy từng container:
-# ================================
-#
-# 1. Chạy tất cả các container:
-#    docker-compose up -d
-#
-# 2. Chạy riêng MySQL:
-#    docker-compose up -d mysql
-#
-# 3. Chạy riêng Redis:
-#    docker-compose up -d redis
-#
-# 4. Chạy riêng RabbitMQ:
-#    docker-compose up -d rabbitmq
-#
-# 5. Dừng tất cả các container:
-#    docker-compose down
-#
-# 6. Dừng riêng một container (ví dụ MySQL):
-#    docker-compose stop mysql
-#
-# 7. Xem log của container:
-#    docker-compose logs -f [service_name]
-#    Ví dụ: docker-compose logs -f mysql
-#
-# 8. Kiểm tra trạng thái các container:
-#    docker-compose ps
-#
-# 9. Xóa container và volume:
-#    docker-compose down -v
-#
-# 10. Truy cập RabbitMQ Management UI:
-#     URL: http://localhost:15672
-#     Username: guest
-#     Password: guest
-#
 
 version: '3.8'
 
@@ -43,7 +5,6 @@ services:
   # Spring Boot API
   app:
     # [THAY ĐỔI QUAN TRỌNG NHẤT]: Xóa 'build: .', thay bằng 'image'
-    # Lưu ý: Thay "your_dockerhub_username" bằng tên đăng nhập DockerHub thật của bạn
     image: quyennguyen8805/ecommerce-backend:latest
     container_name: ecommerce-backend
     ports:

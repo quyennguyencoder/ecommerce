@@ -4,18 +4,17 @@ import com.nguyenquyen.ecommerce.config.RabbitMQConfig;
 import com.nguyenquyen.ecommerce.dto.OrderEmailEvent;
 import com.nguyenquyen.ecommerce.dto.PaginationResponse;
 import com.nguyenquyen.ecommerce.dto.request.OrderCreateRequest;
+import com.nguyenquyen.ecommerce.dto.response.OrderCalculationResponse;
 import com.nguyenquyen.ecommerce.dto.response.OrderResponse;
+import com.nguyenquyen.ecommerce.enums.DiscountType;
 import com.nguyenquyen.ecommerce.enums.OrderStatus;
 import com.nguyenquyen.ecommerce.enums.ShippingMethod;
-import com.nguyenquyen.ecommerce.enums.PaymentMethod;
 import com.nguyenquyen.ecommerce.enums.PaymentStatus;
-import com.nguyenquyen.ecommerce.enums.TransactionStatus;
 import com.nguyenquyen.ecommerce.mapper.OrderMapper;
 import com.nguyenquyen.ecommerce.model.CartItem;
 import com.nguyenquyen.ecommerce.model.Coupon;
 import com.nguyenquyen.ecommerce.model.Order;
 import com.nguyenquyen.ecommerce.model.OrderDetail;
-import com.nguyenquyen.ecommerce.model.Payment;
 import com.nguyenquyen.ecommerce.model.User;
 import com.nguyenquyen.ecommerce.repository.CartItemRepository;
 import com.nguyenquyen.ecommerce.repository.CouponRepository;
@@ -34,11 +33,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService implements IOrderService {
+
+    private static final BigDecimal SHIPPING_FEE_STANDARD = BigDecimal.valueOf(30000);
+    private static final BigDecimal SHIPPING_FEE_EXPRESS = BigDecimal.valueOf(50000);
 
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
@@ -84,6 +89,8 @@ public class OrderService implements IOrderService {
         // Lấy user hiện tại từ SecurityUtil
         User currentUser = securityUtil.getCurrentUser();
 
+        OrderCalculationResponse calculation = calculateTotalPrice(request);
+
         // Tạo Order mới
         Order order = Order.builder()
                 .name(request.getName())
@@ -93,8 +100,8 @@ public class OrderService implements IOrderService {
                 .shippingAddress(request.getShippingAddress())
                 .note(request.getNote())
                 .shippingMethod(request.getShippingMethod() != null ? request.getShippingMethod() : ShippingMethod.STANDARD)
-                .shippingFee(request.getShippingFee())
-                .total(request.getTotal())
+                .shippingFee(calculation.getShippingFee())
+                .total(calculation.getFinalTotal())
                 .status(OrderStatus.PENDING)
                 .paymentStatus(PaymentStatus.UNPAID)
                 .paymentMethod(request.getPaymentMethod())
@@ -105,11 +112,10 @@ public class OrderService implements IOrderService {
         // Nếu có couponCode, lấy và set coupon
         if (request.getCouponCode() != null && !request.getCouponCode().isEmpty()) {
             Coupon coupon = couponRepository.findByCode(request.getCouponCode())
-                    .orElseThrow(() -> new RuntimeException("Coupon không tồn tại với code: " + request.getCouponCode()));
+                    .orElse(null);
             order.setCoupon(coupon);
         }
 
-        // Lưu order trước
         Order savedOrder = orderRepository.save(order);
 
 
@@ -149,7 +155,7 @@ public class OrderService implements IOrderService {
         );
 
         System.out.println("Đã đặt hàng thành công và gửi event lên RabbitMQ!");
-        // Map Order sang OrderResponse
+
         return orderMapper.orderToOrderResponse(savedOrder);
     }
 
@@ -172,6 +178,116 @@ public class OrderService implements IOrderService {
                 .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại với id: " + id));
 
         orderRepository.delete(order);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderCalculationResponse calculateTotalPrice(OrderCreateRequest request) {
+        User currentUser = securityUtil.getCurrentUser();
+
+        if (request.getCartItemIds() == null || request.getCartItemIds().isEmpty()) {
+            throw new RuntimeException("Danh sách cart item không được để trống");
+        }
+
+        BigDecimal subTotal = BigDecimal.ZERO;
+        for (Long cartItemId : request.getCartItemIds()) {
+            CartItem cartItem = cartItemRepository.findById(cartItemId)
+                    .orElseThrow(() -> new RuntimeException("Cart item không tồn tại với id: " + cartItemId));
+
+            if (cartItem.getCart() == null
+                    || cartItem.getCart().getUser() == null
+                    || !currentUser.getId().equals(cartItem.getCart().getUser().getId())) {
+                throw new RuntimeException("Cart item không thuộc quyền sở hữu của bạn: " + cartItemId);
+            }
+
+            BigDecimal lineTotal = cartItem.getVariant().getPrice()
+                    .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+            subTotal = subTotal.add(lineTotal);
+        }
+
+        ShippingMethod shippingMethod = request.getShippingMethod() != null
+                ? request.getShippingMethod()
+                : ShippingMethod.STANDARD;
+
+        BigDecimal shippingFee = shippingMethod == ShippingMethod.EXPRESS
+                ? SHIPPING_FEE_EXPRESS
+                : SHIPPING_FEE_STANDARD;
+
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        boolean isCouponValid = false;
+
+        if (request.getCouponCode() != null && !request.getCouponCode().isBlank()) {
+            Coupon coupon = couponRepository.findByCode(request.getCouponCode()).orElse(null);
+            if (coupon != null && isCouponValid(coupon, subTotal)) {
+                isCouponValid = true;
+                discountAmount = calculateDiscount(coupon, subTotal);
+            }
+        }
+
+        BigDecimal finalTotal = subTotal.add(shippingFee).subtract(discountAmount);
+        if (finalTotal.compareTo(BigDecimal.ZERO) < 0) {
+            finalTotal = BigDecimal.ZERO;
+        }
+
+        OrderCalculationResponse response = OrderCalculationResponse.builder()
+                .subTotal(subTotal)
+                .discountAmount(discountAmount)
+                .shippingFee(shippingFee)
+                .finalTotal(finalTotal)
+                .isCouponValid(isCouponValid)
+                .build();
+        System.out.println(response);
+        return response;
+    }
+
+    private boolean isCouponValid(Coupon coupon, BigDecimal subTotal) {
+        LocalDateTime now = LocalDateTime.now();
+
+        if (coupon.getStartDate() != null && now.isBefore(coupon.getStartDate())) {
+            return false;
+        }
+        if (coupon.getEndDate() != null && now.isAfter(coupon.getEndDate())) {
+            return false;
+        }
+        if (coupon.getActive() != null && !coupon.getActive()) {
+            return false;
+        }
+        if (coupon.getUsageLimit() != null
+                && coupon.getUsedCount() != null
+                && coupon.getUsedCount() >= coupon.getUsageLimit()) {
+            return false;
+        }
+        if (coupon.getMinOrderValue() != null
+                && subTotal.compareTo(BigDecimal.valueOf(coupon.getMinOrderValue())) < 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private BigDecimal calculateDiscount(Coupon coupon, BigDecimal subTotal) {
+        BigDecimal discount;
+
+        if (coupon.getDiscountType() == DiscountType.PERCENTAGE) {
+            discount = subTotal
+                    .multiply(coupon.getDiscountValue())
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        } else {
+            discount = coupon.getDiscountValue();
+        }
+
+        if (coupon.getMaxDiscount() != null) {
+            BigDecimal maxDiscount = BigDecimal.valueOf(coupon.getMaxDiscount());
+            if (discount.compareTo(maxDiscount) > 0) {
+                discount = maxDiscount;
+            }
+        }
+
+        if (discount.compareTo(subTotal) > 0) {
+            discount = subTotal;
+        }
+
+        return discount.max(BigDecimal.ZERO);
     }
 
 }

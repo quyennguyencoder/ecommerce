@@ -1,0 +1,62 @@
+
+
+#  docker compose -f docker-compose.local.yml up -d --build
+#  docker compose -f docker-compose.local.yml up -d redis
+#  docker compose -f docker-compose.local.yml up -d rabbitmq
+
+
+
+version: '3.8'
+
+services:
+
+#  mysql:
+#    image: mysql:8.0
+#    container_name: ecommerce-mysql-local
+#    environment:
+#      MYSQL_ROOT_PASSWORD: root
+#      MYSQL_DATABASE: ecommerce
+#      MYSQL_PASSWORD: root
+#    ports:
+#      - "3307:3306"
+#    volumes:
+#      - mysql_data:/var/lib/mysql
+#    networks:
+#      - ecommerce-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ecommerce-redis
+    hostname: localhost
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 50mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - ecommerce-network
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: ecommerce-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    hostname: localhost
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - ecommerce-network
+
+volumes:
+#  mysql_data:
+  redis_data:
+  rabbitmq_data:
+  uploads_data:
+
+networks:
+  ecommerce-network:
+    driver: bridge
