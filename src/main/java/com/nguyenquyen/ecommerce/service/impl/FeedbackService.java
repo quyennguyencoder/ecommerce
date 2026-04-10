@@ -18,6 +18,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,29 @@ public class FeedbackService implements IFeedbackService {
     private final FeedbackMapper feedbackMapper;
     private final ProductRepository productRepository;
     private final SecurityUtil securityUtil;
+
+    @Override
+    public FeedbackResponse createFeedback(FeedbackCreateRequest request) {
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại với id: " + request.getProductId()));
+
+        User user = securityUtil.getCurrentUser();
+
+        Feedback feedback = Feedback.builder()
+                .star(request.getStar())
+                .content(request.getContent())
+                .product(product)
+                .user(user)
+                .build();
+
+        Feedback savedFeedback = feedbackRepository.save(feedback);
+        
+        product.setRatingCount(product.getRatingCount() + 1);
+        product.setRating(product.getRating().add(BigDecimal.valueOf(request.getStar()))
+                .divide(BigDecimal.valueOf(product.getRatingCount())));
+        productRepository.save(product);
+        return feedbackMapper.feedbackToFeedbackResponse(savedFeedback);
+    }
 
     @Override
     public PaginationResponse<FeedbackResponse> getAllFeedbacks(Long productId, int page, int size) {
@@ -49,21 +74,5 @@ public class FeedbackService implements IFeedbackService {
         return feedbackMapper.feedbackToFeedbackResponse(feedback);
     }
 
-    @Override
-    public FeedbackResponse createFeedback(FeedbackCreateRequest request) {
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại với id: " + request.getProductId()));
 
-        User user = securityUtil.getCurrentUser();
-
-        Feedback feedback = Feedback.builder()
-                .star(request.getStar())
-                .content(request.getContent())
-                .product(product)
-                .user(user)
-                .build();
-
-        Feedback savedFeedback = feedbackRepository.save(feedback);
-        return feedbackMapper.feedbackToFeedbackResponse(savedFeedback);
-    }
 }
