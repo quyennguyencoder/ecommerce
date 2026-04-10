@@ -17,7 +17,6 @@ import com.nguyenquyen.ecommerce.repository.PaymentRepository;
 import com.nguyenquyen.ecommerce.service.IPaymentService;
 import com.nguyenquyen.ecommerce.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -33,7 +32,6 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class VNPayService implements IPaymentService {
     private final VNPayConfig vnPayConfig;
     private final VNPayUtil vnPayUtils;
@@ -64,12 +62,11 @@ public class VNPayService implements IPaymentService {
         String transactionReference = newPayment.getTransactionId();
         String terminalCode = vnPayConfig.getTmnCode();
 
-        // Lấy và xử lý IP thực của client để không văng lỗi 15 của VNPAY
+        // FIX 1: Xử lý IP an toàn (Cắt chuỗi nếu > 15 ký tự hoặc là IPv6)
         String clientIpAddress = vnPayUtils.getIpAddress(securityUtil.getCurrentRequest());
         if (clientIpAddress != null && clientIpAddress.contains(",")) {
             clientIpAddress = clientIpAddress.split(",")[0].trim();
         }
-        // VNPAY chỉ chấp nhận IP độ dài tối đa 15 ký tự (IPv4). Nếu là IPv6 đành fallback về IP nội bộ.
         if (clientIpAddress == null || clientIpAddress.length() > 15 || clientIpAddress.contains(":")) {
             clientIpAddress = "127.0.0.1";
         }
@@ -113,7 +110,7 @@ public class VNPayService implements IPaymentService {
         StringBuilder hashData = new StringBuilder();
         StringBuilder queryData = new StringBuilder();
 
-        // Sử dụng US_ASCII chuẩn hóa theo đúng code mẫu Java của VNPAY
+        // FIX 2: Mã hóa theo chuẩn US_ASCII của VNPay
         String encodeCharset = StandardCharsets.US_ASCII.toString();
 
         try {
@@ -136,10 +133,14 @@ public class VNPayService implements IPaymentService {
             throw new RuntimeException("Lỗi mã hóa URL VNPAY", e);
         }
 
-        String secureHash = vnPayUtils.hmacSHA512(vnPayConfig.getHashSecret(), hashData.toString());
+        // FIX 3: Gọt sạch khoảng trắng/ký tự tàng hình từ file cấu hình Ubuntu
+        String rawSecret = vnPayConfig.getHashSecret();
+        String cleanSecret = rawSecret != null ? rawSecret.trim() : "";
+
+        String secureHash = vnPayUtils.hmacSHA512(cleanSecret, hashData.toString());
         queryData.append("&vnp_SecureHash=").append(secureHash);
 
-        log.info("Tạo URL thanh toán VNPay: {}", vnPayConfig.getPaymentUrl() + "?" + queryData);
+        System.out.println("paymentUrl: " + vnPayConfig.getPaymentUrl() + "?" + queryData);
 
         return PaymentUrlCreateResponse.builder()
                 .paymentUrl(vnPayConfig.getPaymentUrl() + "?" + queryData)
@@ -194,7 +195,7 @@ public class VNPayService implements IPaymentService {
             String vnp_TxnRef = payment.getTransactionId();
             String vnp_OrderInfo = "Truy van giao dich " + vnp_TxnRef;
 
-            // Tương tự, cắt gọt IP ở hàm gọi API Query
+            // Xử lý IP an toàn cho API Query
             String vnp_IpAddr = vnPayUtils.getIpAddress(securityUtil.getCurrentRequest());
             if (vnp_IpAddr != null && vnp_IpAddr.contains(",")) {
                 vnp_IpAddr = vnp_IpAddr.split(",")[0].trim();
@@ -216,7 +217,10 @@ public class VNPayService implements IPaymentService {
                     + vnp_TmnCode + "|" + vnp_TxnRef + "|" + vnp_TransactionDate + "|"
                     + vnp_CreateDate + "|" + vnp_IpAddr + "|" + vnp_OrderInfo;
 
-            String secureHash = vnPayUtils.hmacSHA512(vnPayConfig.getHashSecret(), hashData);
+            // FIX: Gọt sạch khoảng trắng khi gọi API Query
+            String rawSecret = vnPayConfig.getHashSecret();
+            String cleanSecret = rawSecret != null ? rawSecret.trim() : "";
+            String secureHash = vnPayUtils.hmacSHA512(cleanSecret, hashData);
 
             Map<String, String> requestBody = new HashMap<>();
             requestBody.put("vnp_RequestId", vnp_RequestId);
@@ -233,6 +237,7 @@ public class VNPayService implements IPaymentService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
+
             return restTemplate.postForObject(queryUrl, entity, VNPayQueryResponse.class);
 
         } catch (Exception e) {
