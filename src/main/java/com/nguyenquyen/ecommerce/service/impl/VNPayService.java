@@ -62,6 +62,7 @@ public class VNPayService implements IPaymentService {
 
         String transactionReference = newPayment.getTransactionId();
 
+        // Lấy IP thực của client
         String clientIpAddress = vnPayUtils.getIpAddress(securityUtil.getCurrentRequest());
         String terminalCode = vnPayConfig.getTmnCode();
 
@@ -87,9 +88,11 @@ public class VNPayService implements IPaymentService {
         }
 
         params.put("vnp_ReturnUrl", vnPayConfig.getReturnUrl());
-        params.put("vnp_IpAddr", "127.0.0.1");
 
-        // SỬA: Dùng đúng TimeZone của Việt Nam
+        // Đã sửa: Sử dụng IP thực tế của Client thay vì 127.0.0.1
+        params.put("vnp_IpAddr", clientIpAddress);
+
+        // Dùng đúng TimeZone của Việt Nam
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
         String createdDate = dateFormat.format(calendar.getTime());
@@ -110,7 +113,7 @@ public class VNPayService implements IPaymentService {
             String fieldValue = params.get(fieldName);
 
             if (fieldValue != null && !fieldValue.isEmpty()) {
-                // SỬA: Nên dùng UTF-8 chuẩn
+                // Dùng UTF-8 chuẩn
                 hashData.append(fieldName).append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8));
                 queryData.append(URLEncoder.encode(fieldName, StandardCharsets.UTF_8))
                         .append('=')
@@ -140,7 +143,6 @@ public class VNPayService implements IPaymentService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch với ID: " + transactionId));
 
         // Kiểm tra nếu Payment đã được xử lý rồi (không phải PENDING) thì không gọi API lần nữa
-        // Điều này tránh request bị trùng lặp từ VNPay
         if (payment.getTransactionStatus() != TransactionStatus.PENDING) {
             System.out.println("Payment đã được xử lý rồi, trạng thái hiện tại: " + payment.getTransactionStatus());
             return TransactionResponse.builder()
@@ -157,6 +159,7 @@ public class VNPayService implements IPaymentService {
         // Gọi VNPay API để lấy thông tin giao dịch
         VNPayQueryResponse vnPayResponse = queryVNPayTransaction(payment);
         System.out.println("VNPay API Response: " + vnPayResponse);
+
         // Xử lý response từ VNPay
         if (vnPayResponse != null && "00".equals(vnPayResponse.getRspCode())) {
             // Cập nhật status của Payment dựa trên response từ VNPay
@@ -189,7 +192,6 @@ public class VNPayService implements IPaymentService {
      */
     private VNPayQueryResponse queryVNPayTransaction(Payment payment) {
         try {
-            // Lưu ý: URL của API Query thường kết thúc bằng /merchant_webapi/api/transaction
             String queryUrl = vnPayConfig.getApiUrl();
 
             String vnp_RequestId = vnPayUtils.getRandomNumber(10);
@@ -198,8 +200,9 @@ public class VNPayService implements IPaymentService {
             String vnp_TmnCode = vnPayConfig.getTmnCode();
             String vnp_TxnRef = payment.getTransactionId();
             String vnp_OrderInfo = "Truy van giao dich " + vnp_TxnRef;
-            // Lấy IP thực từ request hiện tại
-            String vnp_IpAddr = "127.0.0.1";
+
+            // Đã sửa: Lấy IP thực từ request hiện tại thay vì 127.0.0.1
+            String vnp_IpAddr = vnPayUtils.getIpAddress(securityUtil.getCurrentRequest());
 
             SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
             formatter.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
@@ -208,7 +211,6 @@ public class VNPayService implements IPaymentService {
             String vnp_CreateDate = formatter.format(new Date());
 
             // Thời gian lúc khởi tạo đơn hàng thanh toán
-            // Convert LocalDateTime sang Date với timezone Việt Nam
             java.time.ZonedDateTime zonedDateTime = payment.getCreatedAt()
                     .atZone(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
             String vnp_TransactionDate = formatter.format(java.util.Date.from(zonedDateTime.toInstant()));
