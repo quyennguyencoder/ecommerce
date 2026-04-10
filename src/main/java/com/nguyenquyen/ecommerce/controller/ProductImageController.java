@@ -27,6 +27,23 @@ public class ProductImageController {
     private final IProductImageService productImageService;
 
 
+    @PostMapping("/product/{productId}")
+    public ResponseEntity<ApiResponse<List<ProductImageResponse>>> createProductImage(
+            @PathVariable Long productId,
+            @RequestParam("images") List<MultipartFile> images) {
+
+        List<ProductImageResponse> productImages = productImageService.createProductImages(productId, images);
+
+        ApiResponse<List<ProductImageResponse>> response = ApiResponse.<List<ProductImageResponse>>builder()
+                .status(HttpStatus.CREATED)
+                .message("Tạo hình ảnh sản phẩm thành công")
+                .data(productImages)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductImageResponse>> getProductImageById(@PathVariable Long id) {
         ProductImageResponse productImage = productImageService.getProductImageById(id);
@@ -53,22 +70,6 @@ public class ProductImageController {
                 .build();
 
         return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/product/{productId}")
-    public ResponseEntity<ApiResponse<List<ProductImageResponse>>> createProductImage(
-            @PathVariable Long productId,
-            @RequestParam("images") List<MultipartFile> images) {
-
-        List<ProductImageResponse> productImages = productImageService.createProductImages(productId, images);
-
-        ApiResponse<List<ProductImageResponse>> response = ApiResponse.<List<ProductImageResponse>>builder()
-                .status(HttpStatus.CREATED)
-                .message("Tạo hình ảnh sản phẩm thành công")
-                .data(productImages)
-                .build();
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
