@@ -17,6 +17,7 @@ import com.nguyenquyen.ecommerce.repository.PaymentRepository;
 import com.nguyenquyen.ecommerce.service.IPaymentService;
 import com.nguyenquyen.ecommerce.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -32,6 +33,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VNPayService implements IPaymentService {
     private final VNPayConfig vnPayConfig;
     private final VNPayUtil vnPayUtils;
@@ -137,6 +139,8 @@ public class VNPayService implements IPaymentService {
         String secureHash = vnPayUtils.hmacSHA512(vnPayConfig.getHashSecret(), hashData.toString());
         queryData.append("&vnp_SecureHash=").append(secureHash);
 
+        log.info("Tạo URL thanh toán VNPay: {}", vnPayConfig.getPaymentUrl() + "?" + queryData);
+
         return PaymentUrlCreateResponse.builder()
                 .paymentUrl(vnPayConfig.getPaymentUrl() + "?" + queryData)
                 .build();
@@ -229,7 +233,6 @@ public class VNPayService implements IPaymentService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
-
             return restTemplate.postForObject(queryUrl, entity, VNPayQueryResponse.class);
 
         } catch (Exception e) {
