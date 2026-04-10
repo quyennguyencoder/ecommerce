@@ -63,9 +63,9 @@ spring:
               - email
               - public_profile
 
-base-url: http://localhost:8080
+api-base-url: http://localhost:8080
 uploads:
-  dir: ${UPLOAD_DIR:uploads}
+  dir: uploads
 jwt:
   expiration-access-token: ${JWT_EXPIRATION_ACCESS_TOKEN:2592000}
   expiration-refresh-token: ${JWT_EXPIRATION_REFRESH_TOKEN:5184000}

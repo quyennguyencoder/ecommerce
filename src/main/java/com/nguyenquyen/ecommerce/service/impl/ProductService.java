@@ -131,13 +131,6 @@ public class ProductService implements IProductService {
         if (thumbnail != null && !thumbnail.isEmpty()) {
             String fileName = fileService.uploadFile(thumbnail);
             product.setThumbnail(fileName);
-
-            // Lưu thumbnail vào ProductImage
-            ProductImage productImage = ProductImage.builder()
-                    .imageUrl(fileName)
-                    .product(product)
-                    .build();
-            productImageRepository.save(productImage);
         }
 
         Product updatedProduct = productRepository.save(product);

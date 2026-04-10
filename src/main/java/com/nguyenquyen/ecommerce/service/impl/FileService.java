@@ -21,7 +21,7 @@ public class FileService implements IFileService {
     @Value("${file.upload-dir:uploads}")
     private String uploadDir;
 
-    @Value("${base-url:http://localhost:8080}")
+    @Value("${api-base-url:http://localhost:8080}")
     private String baseUrl;
 
     @Override
