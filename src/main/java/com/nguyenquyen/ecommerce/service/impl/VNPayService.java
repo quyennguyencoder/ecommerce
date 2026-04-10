@@ -59,12 +59,18 @@ public class VNPayService implements IPaymentService {
         // Tổng tiền nhân 100
         long amount = existingOrder.getTotal().multiply(new BigDecimal(100)).longValue();
         String bankCode = paymentCreateRequest.getBankCode();
-
         String transactionReference = newPayment.getTransactionId();
-
-        // Lấy IP thực của client
-        String clientIpAddress = vnPayUtils.getIpAddress(securityUtil.getCurrentRequest());
         String terminalCode = vnPayConfig.getTmnCode();
+
+        // Lấy và xử lý IP thực của client để không văng lỗi 15 của VNPAY
+        String clientIpAddress = vnPayUtils.getIpAddress(securityUtil.getCurrentRequest());
+        if (clientIpAddress != null && clientIpAddress.contains(",")) {
+            clientIpAddress = clientIpAddress.split(",")[0].trim();
+        }
+        // VNPAY chỉ chấp nhận IP độ dài tối đa 15 ký tự (IPv4). Nếu là IPv6 đành fallback về IP nội bộ.
+        if (clientIpAddress == null || clientIpAddress.length() > 15 || clientIpAddress.contains(":")) {
+            clientIpAddress = "127.0.0.1";
+        }
 
         Map<String, String> params = new HashMap<>();
         params.put("vnp_Version", version);
@@ -88,11 +94,8 @@ public class VNPayService implements IPaymentService {
         }
 
         params.put("vnp_ReturnUrl", vnPayConfig.getReturnUrl());
-
-        // Đã sửa: Sử dụng IP thực tế của Client thay vì 127.0.0.1
         params.put("vnp_IpAddr", clientIpAddress);
 
-        // Dùng đúng TimeZone của Việt Nam
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
         String createdDate = dateFormat.format(calendar.getTime());
@@ -108,27 +111,31 @@ public class VNPayService implements IPaymentService {
         StringBuilder hashData = new StringBuilder();
         StringBuilder queryData = new StringBuilder();
 
-        for (Iterator<String> iterator = sortedFieldNames.iterator(); iterator.hasNext();) {
-            String fieldName = iterator.next();
-            String fieldValue = params.get(fieldName);
+        // Sử dụng US_ASCII chuẩn hóa theo đúng code mẫu Java của VNPAY
+        String encodeCharset = StandardCharsets.US_ASCII.toString();
 
-            if (fieldValue != null && !fieldValue.isEmpty()) {
-                // Dùng UTF-8 chuẩn
-                hashData.append(fieldName).append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8));
-                queryData.append(URLEncoder.encode(fieldName, StandardCharsets.UTF_8))
-                        .append('=')
-                        .append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8));
-                if (iterator.hasNext()) {
-                    hashData.append('&');
-                    queryData.append('&');
+        try {
+            for (Iterator<String> iterator = sortedFieldNames.iterator(); iterator.hasNext();) {
+                String fieldName = iterator.next();
+                String fieldValue = params.get(fieldName);
+
+                if (fieldValue != null && !fieldValue.isEmpty()) {
+                    hashData.append(fieldName).append('=').append(URLEncoder.encode(fieldValue, encodeCharset));
+                    queryData.append(URLEncoder.encode(fieldName, encodeCharset))
+                            .append('=')
+                            .append(URLEncoder.encode(fieldValue, encodeCharset));
+                    if (iterator.hasNext()) {
+                        hashData.append('&');
+                        queryData.append('&');
+                    }
                 }
             }
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi mã hóa URL VNPAY", e);
         }
 
         String secureHash = vnPayUtils.hmacSHA512(vnPayConfig.getHashSecret(), hashData.toString());
         queryData.append("&vnp_SecureHash=").append(secureHash);
-
-        System.out.println("paymentUrl: " + vnPayConfig.getPaymentUrl() + "?" + queryData);
 
         return PaymentUrlCreateResponse.builder()
                 .paymentUrl(vnPayConfig.getPaymentUrl() + "?" + queryData)
@@ -138,37 +145,18 @@ public class VNPayService implements IPaymentService {
     @Override
     @Transactional
     public TransactionResponse queryTransaction(String transactionId) {
-        // Lấy Payment từ database
         Payment payment = paymentRepository.findByTransactionId(transactionId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch với ID: " + transactionId));
 
-        // Kiểm tra nếu Payment đã được xử lý rồi (không phải PENDING) thì không gọi API lần nữa
         if (payment.getTransactionStatus() != TransactionStatus.PENDING) {
-            System.out.println("Payment đã được xử lý rồi, trạng thái hiện tại: " + payment.getTransactionStatus());
-            return TransactionResponse.builder()
-                    .id(payment.getId())
-                    .transactionId(payment.getTransactionId())
-                    .paymentMethod(payment.getPaymentMethod())
-                    .transactionStatus(payment.getTransactionStatus())
-                    .orderId(payment.getOrder().getId())
-                    .createdAt(payment.getCreatedAt())
-                    .updatedAt(payment.getUpdatedAt())
-                    .build();
+            return buildTransactionResponse(payment);
         }
 
-        // Gọi VNPay API để lấy thông tin giao dịch
         VNPayQueryResponse vnPayResponse = queryVNPayTransaction(payment);
-        System.out.println("VNPay API Response: " + vnPayResponse);
 
-        // Xử lý response từ VNPay
         if (vnPayResponse != null && "00".equals(vnPayResponse.getRspCode())) {
-            // Cập nhật status của Payment dựa trên response từ VNPay
             updatePaymentStatus(payment, vnPayResponse);
-
-            // Cập nhật Order dựa trên trạng thái thanh toán
             updateOrderStatus(payment.getOrder(), payment);
-
-            // Lưu lại các thay đổi
             paymentRepository.save(payment);
             orderRepository.save(payment.getOrder());
         } else {
@@ -176,6 +164,10 @@ public class VNPayService implements IPaymentService {
                     (vnPayResponse != null ? vnPayResponse.getMessage() : "Unknown error"));
         }
 
+        return buildTransactionResponse(payment);
+    }
+
+    private TransactionResponse buildTransactionResponse(Payment payment) {
         return TransactionResponse.builder()
                 .id(payment.getId())
                 .transactionId(payment.getTransactionId())
@@ -187,9 +179,6 @@ public class VNPayService implements IPaymentService {
                 .build();
     }
 
-    /**
-     * Gọi VNPay API để lấy thông tin giao dịch
-     */
     private VNPayQueryResponse queryVNPayTransaction(Payment payment) {
         try {
             String queryUrl = vnPayConfig.getApiUrl();
@@ -201,28 +190,30 @@ public class VNPayService implements IPaymentService {
             String vnp_TxnRef = payment.getTransactionId();
             String vnp_OrderInfo = "Truy van giao dich " + vnp_TxnRef;
 
-            // Đã sửa: Lấy IP thực từ request hiện tại thay vì 127.0.0.1
+            // Tương tự, cắt gọt IP ở hàm gọi API Query
             String vnp_IpAddr = vnPayUtils.getIpAddress(securityUtil.getCurrentRequest());
+            if (vnp_IpAddr != null && vnp_IpAddr.contains(",")) {
+                vnp_IpAddr = vnp_IpAddr.split(",")[0].trim();
+            }
+            if (vnp_IpAddr == null || vnp_IpAddr.length() > 15 || vnp_IpAddr.contains(":")) {
+                vnp_IpAddr = "127.0.0.1";
+            }
 
             SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
             formatter.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
 
-            // Thời gian lúc gọi API Query
             String vnp_CreateDate = formatter.format(new Date());
 
-            // Thời gian lúc khởi tạo đơn hàng thanh toán
             java.time.ZonedDateTime zonedDateTime = payment.getCreatedAt()
                     .atZone(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
             String vnp_TransactionDate = formatter.format(java.util.Date.from(zonedDateTime.toInstant()));
 
-            // 1. Tạo HashData bằng cách nối các biến với dấu | theo đúng thứ tự VNPay yêu cầu
             String hashData = vnp_RequestId + "|" + vnp_Version + "|" + vnp_Command + "|"
                     + vnp_TmnCode + "|" + vnp_TxnRef + "|" + vnp_TransactionDate + "|"
                     + vnp_CreateDate + "|" + vnp_IpAddr + "|" + vnp_OrderInfo;
 
             String secureHash = vnPayUtils.hmacSHA512(vnPayConfig.getHashSecret(), hashData);
 
-            // 2. Xây dựng Request Body (Định dạng JSON)
             Map<String, String> requestBody = new HashMap<>();
             requestBody.put("vnp_RequestId", vnp_RequestId);
             requestBody.put("vnp_Version", vnp_Version);
@@ -235,12 +226,10 @@ public class VNPayService implements IPaymentService {
             requestBody.put("vnp_IpAddr", vnp_IpAddr);
             requestBody.put("vnp_SecureHash", secureHash);
 
-            // 3. Cấu hình Headers là Application/JSON
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
 
-            // 4. Gọi API
             return restTemplate.postForObject(queryUrl, entity, VNPayQueryResponse.class);
 
         } catch (Exception e) {
@@ -248,11 +237,8 @@ public class VNPayService implements IPaymentService {
         }
     }
 
-
     private void updatePaymentStatus(Payment payment, VNPayQueryResponse vnPayResponse) {
         String vnpayStatus = vnPayResponse.getTransactionStatus();
-
-        // VNPay status code: 00 = Success, other = failed
         if ("00".equals(vnpayStatus)) {
             payment.setTransactionStatus(TransactionStatus.SUCCESS);
         } else {
@@ -260,16 +246,12 @@ public class VNPayService implements IPaymentService {
         }
     }
 
-
     private void updateOrderStatus(Order order, Payment payment) {
         if (payment.getTransactionStatus() == TransactionStatus.SUCCESS) {
             order.setPaymentStatus(PaymentStatus.PAID);
-            // Có thể tự động chuyển status order nếu cần
             if (order.getStatus() == OrderStatus.PENDING) {
                 order.setStatus(OrderStatus.PROCESSING);
             }
-        } else if (payment.getTransactionStatus() == TransactionStatus.FAILED) {
-            order.setPaymentStatus(PaymentStatus.UNPAID);
         } else {
             order.setPaymentStatus(PaymentStatus.UNPAID);
         }
