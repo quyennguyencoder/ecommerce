@@ -132,9 +132,9 @@ public class OrderService implements IOrderService {
                         .price(cartItem.getVariant().getPrice())
                         .quantity(cartItem.getQuantity())
                         .build();
-
                 orderDetailRepository.save(orderDetail);
                 savedOrder.getOrderDetails().add(orderDetail);
+                cartItem.getVariant().setStock(cartItem.getQuantity() <= cartItem.getVariant().getStock() ? cartItem.getVariant().getStock() - cartItem.getQuantity() : 0);
             }
 
             // Lưu lại order với các order details
